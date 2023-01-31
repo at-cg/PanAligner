@@ -1,0 +1,359 @@
+.TH minigraph 1 "12 June 2022" "minigraph-0.19 (r551)" "Bioinformatics tools"
+
+.SH NAME
+.PP
+minigraph - sequence-to-graph mapping and incremental sequence graph generation
+
+.SH SYNOPSIS
+* Sequence-to-graph mapping:
+.RS 4
+.B minigraph
+.RB [ -x
+.IR preset ]
+.RB [ -c ]
+.RB [ -t
+.IR nThreads ]
+.I graph.gfa
+.I query1.fa
+.RI [ ... ]
+.B >
+.I out.gaf
+.RE
+
+* Incremental graph generation:
+.RS 4
+.B minigraph
+.B -x ggs
+.RB [ -c ]
+.RB [ -t
+.IR nThreads ]
+.I initGraph.gfa
+.I sample1Asm.fa
+.RI [ ... ]
+.B >
+.I finalGraph.gfa
+
+.SH DESCRIPTION
+
+Minigraph is a
+.I proof-of-concept
+sequence-to-graph mapper and graph constructor. It finds approximate locations
+of a query sequence in a sequence graph and incrementally augments an existing
+graph with long query subsequences.
+
+.SH OPTIONS
+.SS Indexing options
+.TP 10
+.BI -k \ INT
+Minimizer k-mer length [17]
+.TP
+.BI -w \ INT
+Minimizer window size [11]. A minimizer is the smallest k-mer in a window of w
+consecutive k-mers.
+.SS Mapping options
+.TP 10
+.BI -c
+Perform base alignment; recommended for graph generation
+.TP 10
+.BI -U \ INT1 [, INT2 ]
+Choose the minimizer occurrence threshold within this interval [50,250]
+.TP
+.BI -f \ FLOAT
+Ignore top
+.I FLOAT
+fraction of repetitive minimizers [0.0002]. If this threshold falls within the
+interval set by
+.BR -U ,
+it will be the final threshold; otherwise the lower or the upper bound of
+.B -U
+will be applied.
+.TP
+.BI -j \ FLOAT
+Expected query-graph sequence divergence [0.1]
+.TP
+.BI -g \ NUM 
+Stop chain enlongation if there are no minimizers within
+.IR INT -bp
+[10k]. K/k/M/m suffixes are recognized.
+.TP
+.BI -r \ NUM1 [, NUM2 ]
+Bandwidth for the two rounds of chaining [500,20k].
+.I NUM2
+also controls bandwidth for graph chaining.
+.TP
+.BI -n \ INT1 [, INT2 ]
+Drop graph chains consisting of
+.RI < INT1
+minimizers and drop linear chains consisting of
+.RI < INT2
+minimizers [5,3]
+.TP
+.BI -m \ INT1 [, INT2 ]
+Drop graph chains with graph chaining score
+.RI < INT1
+and drop linear chains with linear chaining score
+.RI < INT2
+[50,30]. Linear chaining score equals the approximate number of matching bases
+minus a weak concave gap penalty. Graph chaining score uses a linear gap
+penalty.
+.TP
+.BI -p \ FLOAT
+Minimal secondary-to-primary score ratio to output secondary mappings [0.8].
+Between two chains overlaping over half of the shorter chain (controlled by
+.BR -M ),
+the chain with a lower score is secondary to the chain with a higher score.
+.TP
+.BI -N \ INT
+Output at most
+.I INT
+secondary mappings [5]. This option has no effect when
+.B -P
+is applied.
+.TP
+.B -P
+Retain all chains and don't attempt to set primary chains. Options
+.B -p
+and
+.B -N
+have no effect when this option is in use.
+.TP
+.BI -M \ FLOAT
+Mark as secondary a chain that overlaps with a better chain by
+.I FLOAT
+or more of the shorter chain [0.5]
+.TP
+.BI --max-gap-pre \ NUM
+Similar to
+.B -g
+but used for prefiltering [1000]
+.TP
+.BI --max-lc-iter \ NUM
+max number of iterations for linear chaining [10000]
+.TP
+.BI --max-rmq-size \ NUM
+max size of the RMQ tree [100000]
+.TP
+.BI --max-lc-skip \ INT
+A heuristics that stops linear chaining early [25]
+.TP
+.BI --max-gc-skip \ INT
+Similar to
+.B --max-lc-skip
+but applied to graph chaining [25]
+.TP
+.BI --ref-bonus \ INT
+Bonus for a reference subwalk [0]
+.TP
+.BI --min-cov-blen \ NUM
+Minimum alignment block length to count [1k]
+.TP
+.BI --min-cov-mapq \ INT
+Minimum mapping quality to count [20]
+.SS Graph generation options
+.TP 10
+.BR --ggen =[ simple ]
+Graph generation algorithm. So far only a
+.B simple
+algorithm is implemented [simple]. With this option, all query sequences are
+loaded into memory.
+.TP
+.B --call
+Call the graph path in each bubble and output in a BED-based format:
+.RS
+  ctg  start  end  sourceNode  sinkNode  walk:strand:queryName:qStart:qEnd
+.RE
+.TP
+.BI -q \ INT
+Minimum mapping quality [5]
+.TP
+.BI -l \ NUM
+Minimum chain length to consider [100k]
+.TP
+.BI -d \ NUM
+Minimum chain length for depth calculation [20k]
+.TP
+.BI -L \ INT
+Minimum insertion length [50]
+.TP
+.BI --gg-match-pen \ INT
+Penalty for a pair of matching anchors [5]. Larger value for more fragmented inserts.
+Effectively without
+.BR -c .
+.TP
+.BR --ins-qovlp = yes | no
+Forcefully resolve query overlaps [no]. Effective without
+.BR -c .
+.TP
+.BR --inv = yes | no
+Generate graphs with inversions or not [yes]
+.TP
+.B --cov
+Remap and generate segment and link use frequencies. This option triggers GFA
+output. When used with
+.BR --ggen ,
+minigraph writes the frequency of link uses and the average breadth of coverage
+of each segment to the
+.B cf
+tag. When used without
+.BR --ggen ,
+minigraph writes the count of link uses and the average depth of coverage of
+each segment to the
+.B dc
+tag.
+.B
+WARNING:
+THIS OPTION IS DEPRECATED AND MAY BE REMOVED IN FUTURE.
+.SS Input/output options
+.TP 10
+.BI -o \ FILE
+Output alignments to
+.I FILE
+[stdout].
+.TP
+.BI -t \ INT
+Number of threads [4]. Minigraph uses at most three threads when indexing target
+sequences, and uses up to
+.IR INT +1
+threads when mapping (the extra thread is for I/O, which is frequently idle and
+takes little CPU time).
+.TP
+.BI -K \ NUM
+Number of bases loaded into memory to process in a mini-batch [500M].
+K/M/G/k/m/g suffix is accepted. A large
+.I NUM
+helps load balancing in the multi-threading mode, at the cost of increased
+memory. This option has no effect if
+.B --ggen
+is applied.
+.TP
+.B --vc
+In output GAF, show mapping paths in the unstable segment coordinate.
+.TP
+.B -S
+Output linear chains in the format of: `*' segName segLen nMinimizer seqDiv segStart segEnd qStart qEnd
+.TP
+.B --write-mz
+Output linear chains in the format of: `*' segName segLen nMinimizer seqDiv segStart segEnd qStart qEnd
+k-mer segOffsets qOffsets. segOffsets and qOffsets are comma-separated lists
+with each consisting of nMinimizer-1 integers which give the distance from the
+previous minimizer on segments and query, respectively.
+.TP
+.BR --secondary = yes | no
+Whether to output secondary alignments [no]
+.TP
+.BR --show-unmap = yes | no
+Print unmapped query sequences in GAF [no]
+.TP
+.B --version
+Print version number to stdout
+.SS Preset options
+.TP 10
+.BI -x \ STR
+Preset []. This option applies multiple options at the same time. Other options
+on the command line will always override values set by
+.BR -x .
+Available
+.I STR
+are:
+.RS
+.TP 8
+.B lr
+Mapping noisy long reads. This is the same as the default setting.
+.TP
+.B sr
+Mapping short single-end or paired-end reads
+.RB ( -k21
+.B -w10 -U1000,2500 -g100 -r100 -p.5 -n3,2 -m40,25 --heap-sort=yes -K50m --frag --ref-bonus=1
+.BR --min-cov-blen=50 ).
+Paired-end mapping is not supported.
+.TP
+.B asm
+Mapping long contigs or high-quality CCS reads
+.RB ( -k19
+.B -w10 -U10,100 -j.01 -g10k -r1k,150k -n5,5 -m1000,40 -K4g --max-lc-skip=50 --max-gc-skip=50 --min-cov-mapq=5
+.BR --min-cov-blen=100k ).
+.TP
+.B ggs
+Incremental graph generation
+.RB ( -xasm
+.B -N0
+.BR --ggen=simple ).
+.RE
+.SS Miscellaneous options
+.TP 10
+.B --no-kalloc
+Use the libc default allocator instead of the kalloc thread-local allocator.
+This debugging option is mostly used with Valgrind to detect invalid memory
+accesses. Minigraph runs slower with this option, especially in the
+multi-threading mode.
+.SH OUTPUT FORMAT
+.PP
+Minigraph outputs mapping positions in the Graph mApping Format (GAF) by
+default. GAF is a TAB-delimited text format with each line consisting of at
+least 12 fields as are described in the following table:
+.TS
+center box;
+cb | cb | cb
+r | c | l .
+Col	Type	Description
+_
+1	string	Query sequence name
+2	int	Query sequence length
+3	int	Query start coordinate (0-based; closed)
+4	int	Query end coordinate (0-based; open)
+5	char	`+' if query/path on the same strand; `-' if opposite
+6	string	Path matching /([><][^\\s><]+(:\\d+-\\d+)?)+|([^\\s><]+)/
+7	int	Path sequence length
+8	int	Path start coordinate
+9	int	Path end coordinate
+10	int	Number of matching bases in the mapping
+11	int	Number bases, including gaps, in the mapping
+12	int	Mapping quality (0-255 with 255 for missing)
+.TE
+
+.PP
+When alignment is available, column 11 gives the total number of sequence
+matches, mismatches and gaps in the alignment; column 10 divided by column 11
+gives the BLAST-like alignment identity. When alignment is unavailable,
+these two columns are approximate. PAF may optionally have additional fields in
+the SAM-like typed key-value format. Minigraph may output the following tags:
+.TS
+center box;
+cb | cb | cb
+r | c | l .
+Tag	Type	Description
+_
+tp	A	Type of aln: P/primary and S/secondary
+cm	i	Number of minimizers on the chain
+s1	i	Chaining score
+s2	i	Chaining score of the best secondary chain
+dv	f	Approximate per-base sequence divergence
+cf	f	Avg. segment breadth of coverage and link use freq
+dc	f	Avg. segment depth of coverage and link use counts
+cg	Z	CIGAR string
+ql	B,i	Lengths of single-end reads
+.TE
+
+.SH LIMITATIONS
+.TP 2
+*
+Minigraph needs to find strong colinear chains first. For a graph consisting of
+many short segments (e.g. one generated from rare SNPs in large populations),
+minigraph will fail to map query sequences.
+.TP
+*
+When connecting colinear chains on graphs, minigraph doesn't always take full
+advantage of base sequences and may miss the optimal alignments.
+.TP
+*
+Minigraph only inserts segments contained in long graph chains. This
+conservative strategy helps to build relatively accurate graph, but may miss
+more complex events. Other strategies may be explored in future.
+.TP
+*
+Base alignment has only been evaluated for human. For more diverse genomes,
+the performance may need to be improved.
+
+.SH SEE ALSO
+.PP
+minimap2(1), gfatools(1).
