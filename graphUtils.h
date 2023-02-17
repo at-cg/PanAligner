@@ -16,6 +16,12 @@
 #include "mgpriv.h"
 #include <chrono> 
 #include <omp.h>
+#include <string>
+#include <list>
+#include <climits>
+#include <assert.h>
+#include <set>
+#include <utility>
 
 
 // Anchors

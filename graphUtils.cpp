@@ -1,4 +1,250 @@
 #include "graphUtils.h"
+typedef std::pair<int, int> pairs;
+
+//Cyclic to DAG conversion
+// Function to calculate indegrees and outdegrees of all the vertices of the graph
+void degCalculate(std::vector<std::vector<int>> &adj, std::vector<int> &degree, std::set<pairs> &deg, unsigned int n_vtx)
+{   
+    assert(n_vtx>=0);
+    for (unsigned int v = 0; v < n_vtx; ++v)
+    {
+        int edgecount = 0;
+        for (auto x : adj[v])
+        {
+            edgecount++;
+        }
+        degree.push_back(edgecount);
+        pairs p= std::make_pair(edgecount, v);
+        deg.insert(p);
+        //std::cout<<"("<<p.first<<","<<p.second<<")\n";
+
+    }
+}
+
+/* Functions to find the max and min element of delta vector in O(n) time
+int findMaximum(std::vector<int> &vec, std::vector<bool> &visited, int &index, int n_vtx)
+{
+    int max = INT_MIN;
+
+    for (int i = 0; i < n_vtx; i++)
+    {
+        if (max < vec[i] && visited[i] == false)
+        {
+            max = vec[i];
+            index = i;
+        }
+    }
+    return max;
+}
+
+int findMinimum(std::vector<int> &vec, std::vector<bool> &visited, int &index, int n_vtx)
+{
+    int min = INT_MAX;
+    for (int i = 0; i < n_vtx; i++)
+    {
+        if (min > vec[i] && visited[i] == false)
+        {
+            min = vec[i];
+            index = i;
+        }
+    }
+    return min;
+}*/
+
+/*  Function for removing a vertex in the graph
+    Vertices that are marked visited as true, have been removed from the graph
+    by updating their inDegree, outDegree and delta vector value accordingly. 
+    And, they have also been erased from IN_DEG, OUT_DEG and DELTA sets.
+*/
+void removeVertex(std::vector<std::vector<int>> &inG, std::vector<std::vector<int>> &outG, std::vector<int> &delta, std::vector<int> &inDegree, std::vector<int> &outDegree, std::set<pairs> &IN_D, std::set<pairs> &OUT_D, std::set<pairs> &DELTA, std::vector<bool> &visited, unsigned int &n, int u)
+{   
+    int deg1, deg2, deg3, d1, d2;
+    deg1= outDegree[u];
+    deg2= inDegree[u];
+    deg3= delta[u];
+    
+    //removing the present vertex from IN_DEG, OUT_DEG and DELTA sets
+    OUT_D.erase(pairs(deg1, u));
+    IN_D.erase(pairs(deg2, u));
+    DELTA.erase(pairs(deg3, u));
+
+    visited[u]=true;
+    n--;
+
+    for (auto x : inG[u])
+    {   
+        if(visited[x]==true)
+        {
+            delta[x]--;
+            outDegree[x]--;
+            assert(outDegree[x] >= 0);
+        }
+        else
+        {
+            d1=outDegree[x];
+            d2=delta[x];
+
+            //updating outDegree vector and OUT_DEG set for all the incoming neigbours of 'u', present in the graph
+            OUT_D.erase(pairs(d1, x));
+            OUT_D.insert(pairs(d1-1, x)); 
+
+            //updating delta vector and DELTA set for all the incoming neigbours of 'u', present in the graph
+            DELTA.erase(pairs(d2, x));
+            DELTA.insert(pairs(d2-1, x)); 
+
+            outDegree[x]--;
+            delta[x]--;
+            assert(outDegree[x] >= 0);
+        }
+    }
+        
+    for (auto x : outG[u])
+    {    
+        if(visited[x]==true)
+        {
+            delta[x]++;
+            inDegree[x]--; 
+            assert(inDegree[x] >= 0);   
+        }
+        else
+        {
+            d1=inDegree[x];
+            d2=delta[x];
+
+            //updating outDegree vector and OUT_DEG set for all the outgoing neigbours of 'u', present in the graph
+            IN_D.erase(pairs(d1, x));
+            IN_D.insert(pairs(d1-1, x));
+
+            //updating delta vector and DELTA set for all the outgoing neigbours of 'u', present in the graph
+            DELTA.erase(pairs(d2, x));
+            DELTA.insert(pairs(d2+1, x)); 
+
+            inDegree[x]--;
+            delta[x]++;
+            assert(inDegree[x] >= 0);   
+        }
+    }
+}
+
+// Cyclic to DAG Conversion
+std::vector<std::vector<int>> &CyclictoDAG(std::vector<std::vector<int>> &adj, std::vector<std::vector<int>> &adjDAG, unsigned int n_vtx)
+{
+    std::vector<std::vector<int>> inG(n_vtx);
+    std::vector<int> inDegree, outDegree, delta, s, s_index (n_vtx, 0);
+    int sink, source, u;
+    unsigned int n = n_vtx;
+    std::vector<bool> visited;
+
+
+
+    //indegree, outdegree and delta sets of pair (key, value)=(vtx_deg, vtx)
+    //max, min etc. operation are performed on key=vtx_deg
+    std::set<pairs> IN_DEG, OUT_DEG, DELTA;
+
+
+    // A. Outgoing edges adjacency list of adj graph
+    //printGraph(adj, n_vtx);
+
+    // B. Incoming edges adjacency list of adj graph
+    for (unsigned int v = 0; v < n_vtx; ++v)
+    {
+        for (auto x : adj[v])
+            inG[x].push_back(v);
+    }
+    //printGraph(inG, n_vtx);
+
+    // C. Indegree and Outdegree vectors, IN_DEG and OUT_DEG sets.
+    degCalculate(inG, inDegree, IN_DEG, n_vtx);
+    degCalculate(adj, outDegree, OUT_DEG, n_vtx);
+
+    // D. Calculating delta(u)=outDegree(u)-inDegree(u) vector and DELTA set for graph adj
+    for (unsigned int v = 0; v < n_vtx; v++)
+    {   
+        int del= outDegree[v] - inDegree[v];
+        delta.push_back(del); //delta vector construction
+
+        pairs p= std::make_pair(del , v);
+        DELTA.insert(p); //DELTA set construction
+        visited.push_back(false);
+        //std::cout << delta[v]<<" ";
+    }
+
+    // E. GR Algorithm
+    std::list<int> s1, s2;
+    while (n != 0)
+    {   
+        //finding minimum outdegree and outdegree vertex
+        auto i1= OUT_DEG.begin();   
+        sink = i1->first;
+
+        //finding minimum indegree and indegree vertex
+        auto i2= IN_DEG.begin();
+        source = i2->first;
+        if (sink == 0)
+        {
+            u = i1->second;
+            //std::cout << "vertex: " << u <<"\n";
+            s2.push_front(u);
+            removeVertex(inG, adj, delta, inDegree, outDegree, IN_DEG, OUT_DEG, DELTA, visited, n, u);
+            //std::cout << n << "\n";
+        }
+        else if (source == 0)
+        {
+            u = i2->second;
+            //std::cout << "vertex: " << u <<"\n";
+            s1.push_back(u);
+            removeVertex(inG, adj, delta, inDegree, outDegree, IN_DEG, OUT_DEG, DELTA, visited, n, u);
+            //std::cout << n << "\n";
+        }
+        else 
+        {   
+            //finding maximum delta value vertex
+            auto i3 = DELTA.rbegin();
+            u = i3->second;
+            //std::cout << "vertex: " << u <<"\n";
+            s1.push_back(u);
+            removeVertex(inG, adj, delta, inDegree, outDegree, IN_DEG, OUT_DEG, DELTA, visited, n, u);
+            //std::cout << n << "\n";
+        }
+    }
+    /*
+    for (int i = 0; i < n_vtx; i++)
+    {
+        std::cout<<outDegree[i]<<","<<inDegree[i]<<","<<delta[i]<<"\n";
+    }
+    */
+    //Concatenating s1 and s2
+    for (auto i = s1.begin(); i != s1.end(); i++)
+    {
+        s.push_back(*i);
+    }
+    for (auto i = s2.begin(); i != s2.end(); i++)
+    {
+        s.push_back(*i);
+    }
+
+    //Vertex sequence for edge removal
+    std::cout<<"Vertex sequence is: ";
+    for (unsigned int i = 0; i < n_vtx; i++)
+    {
+        std::cout<<s[i]<<" ";
+        s_index[s[i]]=i;
+    }
+
+    //Acylic graph
+    std::cout<<"\n\nAcyclic converted graph: \n";
+    for (unsigned int v = 0; v < n_vtx; ++v)
+    {
+        for (auto x : adj[v])
+        {
+            if(s_index[v] < s_index[x])
+                adjDAG[v].push_back(x);
+        }
+    }
+    //printGraph(adjDAG, n_vtx);
+    return adjDAG;
+} 
+//
 
 graphUtils::graphUtils(gfa_t *g)
 {
@@ -56,7 +302,8 @@ void graphUtils::read_graph()
             }
         }
     }
-
+ 
+    std::vector<std::vector<int>> adj(n_vtx), adj_DAG(n_vtx);
     std::cout<<"Print the graph"<<std::endl;
     std::cout<<"Number of nodes and edges are: "<<n_vtx/2<<" "<<num_edges/2<<std::endl;
     for (size_t i = 0; i < n_vtx; i=i+2)
@@ -65,9 +312,23 @@ void graphUtils::read_graph()
         for (int &x : adj_[i])
         {
             std::cerr <<"->" << x;
+            adj[i].push_back(x);
         }
         std::cerr << std::endl;
     }
+
+    CyclictoDAG(adj, adj_DAG, n_vtx);
+    for (size_t i = 0; i < n_vtx; i=i+2)
+    {
+        std::cerr << i;
+        for (int &x : adj_DAG[i])
+        {
+            std::cerr <<"->" << x;
+        }
+        std::cerr << std::endl;
+    }
+
+
 }
 
 void graphUtils::print_graph()
