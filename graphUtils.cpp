@@ -56,6 +56,18 @@ void graphUtils::read_graph()
             }
         }
     }
+
+    std::cout<<"Print the graph"<<std::endl;
+    std::cout<<"Number of nodes and edges are: "<<n_vtx/2<<" "<<num_edges/2<<std::endl;
+    for (size_t i = 0; i < n_vtx; i=i+2)
+    {
+        std::cerr << i;
+        for (int &x : adj_[i])
+        {
+            std::cerr <<"->" << x;
+        }
+        std::cerr << std::endl;
+    }
 }
 
 void graphUtils::print_graph()
