@@ -127,7 +127,7 @@ void removeVertex(std::vector<std::vector<int>> &inG, std::vector<std::vector<in
 }
 
 // Cyclic to DAG Conversion
-std::vector<std::vector<int>> &CyclictoDAG(std::vector<std::vector<int>> &adj, std::vector<std::vector<int>> &adjDAG, unsigned int n_vtx)
+void CyclictoDAG(std::vector<std::vector<int>> &adj, std::vector<std::vector<int>> &adjDAG, unsigned int n_vtx)
 {
     std::vector<std::vector<int>> inG(n_vtx);
     std::vector<int> inDegree, outDegree, delta, s, s_index (n_vtx, 0);
@@ -224,15 +224,15 @@ std::vector<std::vector<int>> &CyclictoDAG(std::vector<std::vector<int>> &adj, s
     }
 
     //Vertex sequence for edge removal
-    std::cout<<"Vertex sequence is: ";
+    //std::cout<<"Vertex sequence is: ";
     for (unsigned int i = 0; i < n_vtx; i++)
     {
-        std::cout<<s[i]<<" ";
+        //std::cout<<s[i]<<" ";
         s_index[s[i]]=i;
     }
 
     //Acylic graph
-    std::cout<<"\n\nAcyclic converted graph: \n";
+    //std::cout<<"\n\nAcyclic converted graph: \n";
     for (unsigned int v = 0; v < n_vtx; ++v)
     {
         for (auto x : adj[v])
@@ -242,7 +242,7 @@ std::vector<std::vector<int>> &CyclictoDAG(std::vector<std::vector<int>> &adj, s
         }
     }
     //printGraph(adjDAG, n_vtx);
-    return adjDAG;
+    //return adjDAG;
 } 
 //
 
@@ -304,29 +304,36 @@ void graphUtils::read_graph()
     }
  
     std::vector<std::vector<int>> adj(n_vtx), adj_DAG(n_vtx);
-    std::cout<<"Print the graph"<<std::endl;
-    std::cout<<"Number of nodes and edges are: "<<n_vtx/2<<" "<<num_edges/2<<std::endl;
-    for (size_t i = 0; i < n_vtx; i=i+2)
+    unsigned int adj_edge=0, dag_edge=0;
+    //std::cout<<"Print the graph"<<std::endl;
+    std::cout<<"\nNumber of nodes and edges are: "<<n_vtx/2<<" "<<num_edges/2<<std::endl;
+    for (size_t i = 0; i < n_vtx; i++)
     {
-        std::cerr << i;
+        //std::cerr << i;
         for (int &x : adj_[i])
         {
-            std::cerr <<"->" << x;
+            //std::cerr <<"->" << x;
             adj[i].push_back(x);
+            adj_edge++;
+
         }
-        std::cerr << std::endl;
+        //std::cerr << std::endl;
     }
+    std::cout<<"\nedges in cyclic graph: "<<adj_edge<<"\n";
 
     CyclictoDAG(adj, adj_DAG, n_vtx);
-    for (size_t i = 0; i < n_vtx; i=i+2)
+    for (size_t i = 0; i < n_vtx; i++)
     {
-        std::cerr << i;
+        //std::cerr << i;
         for (int &x : adj_DAG[i])
         {
-            std::cerr <<"->" << x;
+            //std::cerr <<"->" << x;
+            dag_edge++;
         }
-        std::cerr << std::endl;
+        //std::cerr << std::endl;
     }
+    std::cout<<"Edges in DAG: "<<dag_edge<<"\n";
+    std::cout<<"No. of edges removed: "<<adj_edge-dag_edge<<"\n\n";
 
 
 }
