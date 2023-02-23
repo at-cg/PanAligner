@@ -207,12 +207,14 @@ void CyclictoDAG(std::vector<std::vector<int>> &adj, std::vector<std::vector<int
             //std::cout << n << "\n";
         }
     }
-    /*
     for (int i = 0; i < n_vtx; i++)
     {
-        std::cout<<outDegree[i]<<","<<inDegree[i]<<","<<delta[i]<<"\n";
+        //std::cout<<outDegree[i]<<","<<inDegree[i]<<","<<delta[i]<<"\n";
+        assert(outDegree[i]==0);
+        assert(inDegree[i]==0);
+        assert(delta[i]==0);
     }
-    */
+
     //Concatenating s1 and s2
     for (auto i = s1.begin(); i != s1.end(); i++)
     {
