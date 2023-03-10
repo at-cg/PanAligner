@@ -2,251 +2,252 @@
 typedef std::pair<int, int> pairs;
 
 //Cyclic to DAG conversion
-// Function to calculate indegrees and outdegrees of all the vertices of the graph
-void degCalculate(std::vector<std::vector<int>> &adj, std::vector<int> &degree, std::set<pairs> &deg, unsigned int n_vtx)
-{   
-    assert(n_vtx>=0);
-    for (unsigned int v = 0; v < n_vtx; ++v)
-    {
-        int edgecount = 0;
-        for (auto x : adj[v])
-        {
-            edgecount++;
-        }
-        degree.push_back(edgecount);
-        pairs p= std::make_pair(edgecount, v);
-        deg.insert(p);
-        //std::cout<<"("<<p.first<<","<<p.second<<")\n";
-
-    }
-}
-
-/* Functions to find the max and min element of delta vector in O(n) time
-int findMaximum(std::vector<int> &vec, std::vector<bool> &visited, int &index, int n_vtx)
+//Function to get the vertex order for SCC computation Using DFS
+void DFS_order(std::vector<std::vector<int>> un_adj, std::vector<bool> &visited, int u, std::stack<int> &stack)
 {
-    int max = INT_MIN;
-
-    for (int i = 0; i < n_vtx; i++)
-    {
-        if (max < vec[i] && visited[i] == false)
-        {
-            max = vec[i];
-            index = i;
-        }
-    }
-    return max;
-}
-
-int findMinimum(std::vector<int> &vec, std::vector<bool> &visited, int &index, int n_vtx)
-{
-    int min = INT_MAX;
-    for (int i = 0; i < n_vtx; i++)
-    {
-        if (min > vec[i] && visited[i] == false)
-        {
-            min = vec[i];
-            index = i;
-        }
-    }
-    return min;
-}*/
-
-/*  Function for removing a vertex in the graph
-    Vertices that are marked visited as true, have been removed from the graph
-    by updating their inDegree, outDegree and delta vector value accordingly. 
-    And, they have also been erased from IN_DEG, OUT_DEG and DELTA sets.
-*/
-void removeVertex(std::vector<std::vector<int>> &inG, std::vector<std::vector<int>> &outG, std::vector<int> &delta, std::vector<int> &inDegree, std::vector<int> &outDegree, std::set<pairs> &IN_D, std::set<pairs> &OUT_D, std::set<pairs> &DELTA, std::vector<bool> &visited, unsigned int &n, int u)
-{   
-    int deg1, deg2, deg3, d1, d2;
-    deg1= outDegree[u];
-    deg2= inDegree[u];
-    deg3= delta[u];
-    
-    //removing the present vertex from IN_DEG, OUT_DEG and DELTA sets
-    OUT_D.erase(pairs(deg1, u));
-    IN_D.erase(pairs(deg2, u));
-    DELTA.erase(pairs(deg3, u));
-
     visited[u]=true;
-    n--;
-
-    for (auto x : inG[u])
-    {   
-        if(visited[x]==true)
+    for (auto v:un_adj[u])
         {
-            delta[x]--;
-            outDegree[x]--;
-            assert(outDegree[x] >= 0);
+            if (!visited[v])
+            {
+                DFS_order(un_adj, visited, v, stack);
+            }
         }
-        else
-        {
-            d1=outDegree[x];
-            d2=delta[x];
+    //std::cout<<u<<" ";
+    stack.push(u);
+}
 
-            //updating outDegree vector and OUT_DEG set for all the incoming neigbours of 'u', present in the graph
-            OUT_D.erase(pairs(d1, x));
-            OUT_D.insert(pairs(d1-1, x)); 
-
-            //updating delta vector and DELTA set for all the incoming neigbours of 'u', present in the graph
-            DELTA.erase(pairs(d2, x));
-            DELTA.insert(pairs(d2-1, x)); 
-
-            outDegree[x]--;
-            delta[x]--;
-            assert(outDegree[x] >= 0);
-        }
-    }
-        
-    for (auto x : outG[u])
-    {    
-        if(visited[x]==true)
-        {
-            delta[x]++;
-            inDegree[x]--; 
-            assert(inDegree[x] >= 0);   
-        }
-        else
-        {
-            d1=inDegree[x];
-            d2=delta[x];
-
-            //updating outDegree vector and OUT_DEG set for all the outgoing neigbours of 'u', present in the graph
-            IN_D.erase(pairs(d1, x));
-            IN_D.insert(pairs(d1-1, x));
-
-            //updating delta vector and DELTA set for all the outgoing neigbours of 'u', present in the graph
-            DELTA.erase(pairs(d2, x));
-            DELTA.insert(pairs(d2+1, x)); 
-
-            inDegree[x]--;
-            delta[x]++;
-            assert(inDegree[x] >= 0);   
-        }
+//Function to get the Transpose of graph
+void Transpose_G(std::vector<std::vector<int>> un_adj, std::vector<std::vector<int>> &T_adj, int n_vtx)
+{
+    for (int v = 0; v < n_vtx; ++v)
+    {
+        for (auto x : un_adj[v])
+            T_adj[x].push_back(v);
     }
 }
 
-// Cyclic to DAG Conversion
-void CyclictoDAG(std::vector<std::vector<int>> &adj, std::vector<std::vector<int>> &adjDAG, unsigned int n_vtx)
+//DFS to find SCC
+void DFS_SCC(std::vector<std::vector<int>> &adj, std::vector<bool> &visited, int u, std::vector<int> &component, int num_components, std::stack<int> &stack)
 {
-    std::vector<std::vector<int>> inG(n_vtx);
-    std::vector<int> inDegree, outDegree, delta, s, s_index (n_vtx, 0);
-    int sink, source, u;
-    unsigned int n = n_vtx;
-    std::vector<bool> visited;
+    visited[u]=true;
+    //std::cout<<u<<" ";
+    component[u]=num_components;
+    for (auto x : adj[u])
+        if(!visited[x])
+            DFS_SCC(adj, visited, x, component, num_components, stack);
+}
 
-
-
-    //indegree, outdegree and delta sets of pair (key, value)=(vtx_deg, vtx)
-    //max, min etc. operation are performed on key=vtx_deg
-    std::set<pairs> IN_DEG, OUT_DEG, DELTA;
-
-
-    // A. Outgoing edges adjacency list of adj graph
-    //printGraph(adj, n_vtx);
-
-    // B. Incoming edges adjacency list of adj graph
-    for (unsigned int v = 0; v < n_vtx; ++v)
+//Computing SCC
+void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
+{
+    std::stack<int> stack, dfs_order;
+    size_t num_components, num_cid, comp_size;
+    std::vector<std::vector<int> > conn_comp, T_adj(n_vtx), comp_adj, adj_(n_vtx);
+    std::vector<int> component, v_sequence;
+    
+    for (int v = 0; v < n_vtx; ++v)
     {
         for (auto x : adj[v])
-            inG[x].push_back(v);
-    }
-    //printGraph(inG, n_vtx);
+            if(v!=x)
+                adj_[v].push_back(x);
+    }   
+    //printGraph(adj, n_vtx);
+    //printGraph(adj_, n_vtx);
 
-    // C. Indegree and Outdegree vectors, IN_DEG and OUT_DEG sets.
-    degCalculate(inG, inDegree, IN_DEG, n_vtx);
-    degCalculate(adj, outDegree, OUT_DEG, n_vtx);
-
-    // D. Calculating delta(u)=outDegree(u)-inDegree(u) vector and DELTA set for graph adj
-    for (unsigned int v = 0; v < n_vtx; v++)
-    {   
-        int del= outDegree[v] - inDegree[v];
-        delta.push_back(del); //delta vector construction
-
-        pairs p= std::make_pair(del , v);
-        DELTA.insert(p); //DELTA set construction
-        visited.push_back(false);
-        //std::cout << delta[v]<<" ";
-    }
-
-    // E. GR Algorithm
-    std::list<int> s1, s2;
-    while (n != 0)
-    {   
-        //finding minimum outdegree and outdegree vertex
-        auto i1= OUT_DEG.begin();   
-        sink = i1->first;
-
-        //finding minimum indegree and indegree vertex
-        auto i2= IN_DEG.begin();
-        source = i2->first;
-        if (sink == 0)
+    //Get the vertex order
+    std::vector<bool> visited(n_vtx,false);
+    for (int u = 0; u < n_vtx; u++)
+    {
+        if (visited[u] == false)
         {
-            u = i1->second;
-            //std::cout << "vertex: " << u <<"\n";
-            s2.push_front(u);
-            removeVertex(inG, adj, delta, inDegree, outDegree, IN_DEG, OUT_DEG, DELTA, visited, n, u);
-            //std::cout << n << "\n";
+           DFS_order(adj_, visited, u, stack);
         }
-        else if (source == 0)
+    }
+    visited.clear();
+
+    //get the transpose graph
+    Transpose_G(adj_, T_adj, n_vtx);
+
+    //Get the SCC
+    for (int i = 0; i < n_vtx; i++)
+    {
+        visited[i]=false;
+    }
+    
+    num_components = 0;
+    component.resize(n_vtx);  
+
+    while (!stack.empty())
+    {
+        int s = stack.top();
+        stack.pop();
+        if(visited[s]== false)
         {
-            u = i2->second;
-            //std::cout << "vertex: " << u <<"\n";
-            s1.push_back(u);
-            removeVertex(inG, adj, delta, inDegree, outDegree, IN_DEG, OUT_DEG, DELTA, visited, n, u);
-            //std::cout << n << "\n";
+            DFS_SCC(T_adj, visited, s, component, num_components, stack);
+            num_components++;
+            //std::cout<<"\n";
         }
-        else 
+
+    } 
+    visited.clear();
+
+    // Storing Connected Components
+    conn_comp.resize(num_components);
+    for (int i = 0; i < n_vtx; i++)
+    {
+        conn_comp[component[i]].push_back(i); // Add Vertex to it's component
+    }
+
+    //std::cout<<"Total number of SCCs are: "<<num_components<<"\n";
+    /*for(size_t i=0; i< num_components; i++)
+    {
+        std::cout<<"SCC "<<i<<" : [";
+        for (auto &v: conn_comp[i])
+        {
+            std::cout<<v<<" ";
+        }
+        std::cout<<"]\n";
+    }*/
+
+    num_cid=num_components;
+    std::vector<std::vector<int> > component_idx(num_cid), idx_component(num_cid);
+    // Map Components
+    for (size_t cid = 0; cid < num_cid; cid++)
+    {   
+        //std::cout<<conn_comp[cid].size()<<" ";
+        component_idx[cid].resize(conn_comp[cid].size());
+        idx_component[cid].resize(n_vtx);
+        for (size_t j = 0; j < conn_comp[cid].size(); j++)
+        {
+            //std::cout<<conn_comp[cid][j]<<" ";
+            component_idx[cid][j] = conn_comp[cid][j]; // map global to local
+            //std::cout<<component_idx[cid][j]<<"\n";
+            idx_component[cid][conn_comp[cid][j]] = j; // map local to global
+            //std::cout<<idx_component[cid][conn_comp[cid][j]]<<"\n";
+
+        }
+    }
+    // Adjacency list for all strongly connected components
+    std::vector<std::vector<int>> *adj_scc;
+    adj_scc = new std::vector<std::vector<int>>[num_components];
+    for (size_t cid = 0; cid < num_cid; cid++)
+    {   
+        for (size_t i=0; i<conn_comp[cid].size(); i++)
+        {
+            visited[conn_comp[cid][i]]=true;
+        }
+
+        adj_scc[cid].resize(conn_comp[cid].size());
+        for (auto &j : conn_comp[cid])
         {   
-            //finding maximum delta value vertex
-            auto i3 = DELTA.rbegin();
-            u = i3->second;
-            //std::cout << "vertex: " << u <<"\n";
-            s1.push_back(u);
-            removeVertex(inG, adj, delta, inDegree, outDegree, IN_DEG, OUT_DEG, DELTA, visited, n, u);
-            //std::cout << n << "\n";
+            for (size_t k = 0; k < adj_[j].size(); k++)
+            {   
+                if(visited[adj_[j][k]]==true && idx_component[cid][j]!= idx_component[cid][adj_[j][k]])
+                    {
+                    adj_scc[cid][idx_component[cid][j]].push_back(idx_component[cid][adj_[j][k]]);
+                    }
+            }
         }
+        for (size_t i=0; i<conn_comp[cid].size(); i++)
+        {
+            visited[conn_comp[cid][i]]=false;
+        }
+    } 
+    visited.clear();
+
+    //Printing adjancency list of each SCC
+    for (size_t cid = 0; cid < num_cid; cid++)
+    {   
+        comp_size=adj_scc[cid].size();
+        comp_adj.resize(comp_size);
+        std::vector<bool> visit(comp_size, false);
+        std::vector<int> s_index(comp_size, 0);
+        for (size_t j = 0; j < comp_size; j++)
+        {   
+            for (auto &k : adj_scc[cid][j])
+            {  
+                comp_adj[j].push_back(k);
+            }
+        }
+        //printGraph(comp_adj, comp_size);
+        if(comp_size > 1)
+        {
+            for (size_t u = 0; u < comp_size; u++)
+            {
+                if (visit[u] == false)
+                {
+                    DFS_order(comp_adj, visit, u, dfs_order);
+                }
+            }
+            for (size_t u = 0; u < comp_size; u++)
+            {
+                v_sequence.push_back(dfs_order.top());
+                dfs_order.pop();
+            }
+
+            for (size_t i = 0; i < comp_size; i++)
+            {
+                //std::cout<<v_sequence[i]<<" ";
+                s_index[v_sequence[i]]=i;
+            }
+            
+            adj_scc[cid].clear();
+            adj_scc[cid].resize(comp_size);
+            for (unsigned int v = 0; v < comp_size; ++v)
+            {
+                for (auto x : comp_adj[v])
+                {
+                    if(s_index[v] < s_index[x])
+                        adj_scc[cid][v].push_back(x);
+                }
+            }
+            comp_adj.clear();
+            visit.clear();
+            s_index.clear();
+            v_sequence.clear();
+        }
+        /*std::cout<<"DAG converted components \n";
+        for (size_t j = 0; j < comp_size; j++)
+        {   
+            std::cout<<j;
+            for (auto &k : adj_scc[cid][j])
+            {  
+                std::cout<<"->"<<k;
+            }
+            std::cout<<"\n";
+        }*/
     }
     for (int i = 0; i < n_vtx; i++)
     {
-        //std::cout<<outDegree[i]<<","<<inDegree[i]<<","<<delta[i]<<"\n";
-        assert(outDegree[i]==0);
-        assert(inDegree[i]==0);
-        assert(delta[i]==0);
+        visited[i]=false;
     }
-
-    //Concatenating s1 and s2
-    for (auto i = s1.begin(); i != s1.end(); i++)
-    {
-        s.push_back(*i);
-    }
-    for (auto i = s2.begin(); i != s2.end(); i++)
-    {
-        s.push_back(*i);
-    }
-
-    //Vertex sequence for edge removal
-    //std::cout<<"Vertex sequence is: ";
-    for (unsigned int i = 0; i < n_vtx; i++)
-    {
-        //std::cout<<s[i]<<" ";
-        s_index[s[i]]=i;
-    }
-
-    //Acylic graph
-    //std::cout<<"\n\nAcyclic converted graph: \n";
-    for (unsigned int v = 0; v < n_vtx; ++v)
-    {
-        for (auto x : adj[v])
+    
+    //Converted DAG
+    adj.clear();
+    adj.resize(n_vtx);
+    for (size_t cid = 0; cid < num_cid; cid++)
+    {   
+        for (size_t i=0; i<conn_comp[cid].size(); i++)
         {
-            if(s_index[v] < s_index[x])
-                adjDAG[v].push_back(x);
+            visited[conn_comp[cid][i]]=true;
         }
-    }
-    //printGraph(adjDAG, n_vtx);
-    //return adjDAG;
-} 
-//
+        for (auto &j : conn_comp[cid])
+        {   
+            for(auto &v : adj_[j])
+                if(visited[v]==false)
+                    adj[j].push_back(v);
+            
+            for(auto &u : adj_scc[cid][idx_component[cid][j]])
+                adj[j].push_back(component_idx[cid][u]);
+        }
+        for (size_t i=0; i<conn_comp[cid].size(); i++)
+        {
+            visited[conn_comp[cid][i]]=false;
+        }
+    } 
+    //printGraph(adj, n_vtx);
+}
 
 graphUtils::graphUtils(gfa_t *g)
 {
@@ -305,39 +306,40 @@ void graphUtils::read_graph()
         }
     }
  
-    std::vector<std::vector<int>> adj(n_vtx), adj_DAG(n_vtx);
-    unsigned int adj_edge=0, dag_edge=0;
+    //std::vector<std::vector<int>> adj(n_vtx);
+
+    //int diff;
     //std::cout<<"Print the graph"<<std::endl;
     std::cout<<"\nNumber of nodes and edges are: "<<n_vtx/2<<" "<<num_edges/2<<std::endl;
+    std::cout<<"\nEdges in cyclic graph: "<<num_edges;
+    std::cout<<"\nNumber of nodes in cyclic graph: "<<n_vtx<<std::endl;
+
+    /*SCC(adj, n_vtx);
     for (size_t i = 0; i < n_vtx; i++)
     {
+        adj_[i].clear();
         //std::cerr << i;
-        for (int &x : adj_[i])
+        for (int &x : adj[i])
         {
-            //std::cerr <<"->" << x;
-            adj[i].push_back(x);
-            adj_edge++;
-
-        }
-        //std::cerr << std::endl;
-    }
-    std::cout<<"\nedges in cyclic graph: "<<adj_edge<<"\n";
-
-    CyclictoDAG(adj, adj_DAG, n_vtx);
-    for (size_t i = 0; i < n_vtx; i++)
-    {
-        //std::cerr << i;
-        for (int &x : adj_DAG[i])
-        {
+            adj_[i].push_back(x);
             //std::cerr <<"->" << x;
             dag_edge++;
         }
         //std::cerr << std::endl;
     }
+
+    /*for (size_t i = 0; i < n_vtx; i++)
+    {
+        std::cerr << i;
+        for (int &x : adj[i])
+        {
+            std::cerr <<"->" << x;
+        }
+        std::cerr << std::endl;
+    }
     std::cout<<"Edges in DAG: "<<dag_edge<<"\n";
     std::cout<<"No. of edges removed: "<<adj_edge-dag_edge<<"\n\n";
-
-
+    */
 }
 
 void graphUtils::print_graph()
@@ -385,6 +387,8 @@ void DFS(std::vector<std::vector<int>> un_adj, std::vector<bool> &visited, int u
 
 void graphUtils::Connected_components()
 {
+    std::vector<std::vector<int>> comp_adj;
+    int comp_size, dag_edge=0, dag_vertex=0, adj_edge=0;
     size_t num_components;
     if (lin_ref == 1)
     {
@@ -454,14 +458,59 @@ void graphUtils::Connected_components()
     {
         adj_cc[cid].resize(conn_comp[cid].size());
         for (auto const &j : conn_comp[cid])
-        {
+        {   
             for (int k = 0; k < adj_[j].size(); k++)
-            {
+            {   
                 adj_cc[cid][idx_component[cid][j]].push_back(idx_component[cid][adj_[j][k]]); // Map local index
+        
             }
         }
     }
     // In degree and Outdegree computation
+
+    //std::cout<<"No. of vertices in each component are:"<<std::endl;
+    for (size_t cid = 0; cid < num_cid; cid++)
+    {   
+        comp_size=conn_comp[cid].size();
+        comp_adj.resize(comp_size);
+        for (size_t j = 0; j < adj_cc[cid].size(); j++)
+        {   
+            for (auto const &k : adj_cc[cid][j])
+            {
+                //std::cout<<"->"<<adj_[j][k];
+                comp_adj[j].push_back(k);
+                adj_edge++;
+            }
+
+        }
+        SCC(comp_adj, comp_size);
+        adj_cc[cid].clear();
+        adj_cc[cid].resize(comp_size);
+        //std::cout<<"DAG Component"<<cid<<"\n";
+        
+        for (size_t j = 0; j < comp_adj.size(); j++)
+        {   
+            //std::cout<<j;
+            for (auto const &k : comp_adj[j])
+            {
+                adj_cc[cid][j].push_back(k);
+                //std::cout<<"->"<<k;
+                dag_edge++;
+                
+            }
+            dag_vertex++;
+            //std::cout<<"\n";
+        }
+        //std::cout<<"Total number of edges in Acyclic Component "<<cid<<" :"<<"-> [";
+        //std::cout<<comp_count<<"] \n";
+        comp_adj.clear(); 
+    }
+    //std::cout<<"Total number of edges in cyclic graph "<<comp_count1<<"\n";
+    std::cout<<"Total number of nodes in DAG "<<dag_vertex<<"\n\n";
+    std::cout<<"Total number of edges in DAG "<<dag_edge<<"\n";
+    std::cout<<"Number of edged removed :"<<adj_edge-dag_edge<<"\n\n";
+   
+
 }
 
 
@@ -526,10 +575,15 @@ int graphUtils::is_cyclic() // Check cyclicity of component and convert to acycl
             cycle_count++;
         }
     }
+    for (size_t i = 0; i < num_comp; i++)
+    {
+        std::cout<<cid_cycle[i]<<" ";
+    }
+    
     q.clear();
     in_degree.clear();
     out_degree.clear();
-    // std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]"<< std::endl;
+    std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]"<< std::endl;
     return cycle_count;
 }
 
@@ -857,7 +911,7 @@ void graphUtils::MPC()
             }
             std::reverse(path.begin(),path.end());
             path_cover[cid].push_back(path);
-            // std::cerr << "cid = " << cid << " path #" << path_cover[cid].size() << " : " << path.size() << " " << new_covered << " " << (V - covered_count) << std::endl;
+            //std::cerr << "cid = " << cid << " path #" << path_cover[cid].size() << " : " << path.size() << " " << new_covered << " " << (V - covered_count) << std::endl;
             path.clear();
         }
 
