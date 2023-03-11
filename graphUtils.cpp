@@ -3,14 +3,14 @@ typedef std::pair<int, int> pairs;
 
 //Cyclic to DAG conversion
 //Function to get the vertex order for SCC computation Using DFS
-void DFS_order(std::vector<std::vector<int>> un_adj, std::vector<bool> &visited, int u, std::stack<int> &stack)
+void Fillorder(std::vector<std::vector<int>> &un_adj, std::vector<bool> &visited, int u, std::stack<int> &stack)
 {
     visited[u]=true;
     for (auto v:un_adj[u])
         {
             if (!visited[v])
             {
-                DFS_order(un_adj, visited, v, stack);
+                Fillorder(un_adj, visited, v, stack);
             }
         }
     //std::cout<<u<<" ";
@@ -18,7 +18,7 @@ void DFS_order(std::vector<std::vector<int>> un_adj, std::vector<bool> &visited,
 }
 
 //Function to get the Transpose of graph
-void Transpose_G(std::vector<std::vector<int>> un_adj, std::vector<std::vector<int>> &T_adj, int n_vtx)
+void Transpose_G(std::vector<std::vector<int>> &un_adj, std::vector<std::vector<int>> &T_adj, int n_vtx)
 {
     for (int v = 0; v < n_vtx; ++v)
     {
@@ -38,30 +38,49 @@ void DFS_SCC(std::vector<std::vector<int>> &adj, std::vector<bool> &visited, int
             DFS_SCC(adj, visited, x, component, num_components, stack);
 }
 
+/*void SCC_DFS(std::vector<std::vector<int>> &adj, std::vector<bool> &visited, std::vector<bool> &mask, int u, std::vector<int> &v_seq)
+{
+    if(mask[u]==true)
+    {
+        v_seq.push_back(u);
+        visited[u]=true;
+        for(auto &v : adj[u])
+            if(visited[v]==false)
+                SCC_DFS(adj, visited, mask, v, v_seq);
+    }
+}*/
+
 //Computing SCC
 void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
 {
+    int vtx;
     std::stack<int> stack, dfs_order;
-    size_t num_components, num_cid, comp_size;
-    std::vector<std::vector<int> > conn_comp, T_adj(n_vtx), comp_adj, adj_(n_vtx);
-    std::vector<int> component, v_sequence;
+    size_t num_components, comp_size;
+    std::vector<std::vector<int> > conn_comp, T_adj(n_vtx), adj_(n_vtx), comp_adj;
+    std::vector<int> component, v_seq, s_index(n_vtx), v_sequence;
     
     for (int v = 0; v < n_vtx; ++v)
     {
         for (auto x : adj[v])
+        {
             if(v!=x)
                 adj_[v].push_back(x);
+            //edge++;
+        }
+            
     }   
     //printGraph(adj, n_vtx);
+    adj.clear();
+    adj.resize(n_vtx);
     //printGraph(adj_, n_vtx);
 
     //Get the vertex order
-    std::vector<bool> visited(n_vtx,false);
+    std::vector<bool> visited(n_vtx,false), mask(n_vtx, false);
     for (int u = 0; u < n_vtx; u++)
     {
         if (visited[u] == false)
         {
-           DFS_order(adj_, visited, u, stack);
+           Fillorder(adj_, visited, u, stack);
         }
     }
     visited.clear();
@@ -71,9 +90,7 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
 
     //Get the SCC
     for (int i = 0; i < n_vtx; i++)
-    {
-        visited[i]=false;
-    }
+        visited.push_back(false);
     
     num_components = 0;
     component.resize(n_vtx);  
@@ -92,6 +109,9 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
     } 
     visited.clear();
 
+    for (int i = 0; i < n_vtx; i++)
+        visited[i]=false;
+
     // Storing Connected Components
     conn_comp.resize(num_components);
     for (int i = 0; i < n_vtx; i++)
@@ -99,8 +119,8 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
         conn_comp[component[i]].push_back(i); // Add Vertex to it's component
     }
 
-    //std::cout<<"Total number of SCCs are: "<<num_components<<"\n";
-    /*for(size_t i=0; i< num_components; i++)
+    /*std::cout<<"Total number of SCCs are: "<<num_components<<"\n";
+    for(size_t i=0; i< num_components; i++)
     {
         std::cout<<"SCC "<<i<<" : [";
         for (auto &v: conn_comp[i])
@@ -110,7 +130,54 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
         std::cout<<"]\n";
     }*/
 
-    num_cid=num_components;
+    /*for(size_t i=0; i< num_components; i++)
+    {
+        if(conn_comp[i].size() == 1)
+        {
+            for(auto &j : conn_comp[i])
+                for(auto &v : adj_[j])
+                    adj[j].push_back(v);
+        }
+        else
+        {
+            for(auto &k : conn_comp[i])
+                mask[k]=true;
+            for (auto &a: conn_comp[i])
+            {
+                if (visited[a]==false)
+                    SCC_DFS(adj_, visited, mask, a, v_seq);
+
+            }
+            //vtx=conn_comp[i][0];
+            //std::cout<<"starting vertex"<<vtx;
+            //SCC_DFS(adj_, visited, mask, vtx, v_seq);
+
+
+            for(size_t j=0; j< conn_comp[i].size(); j++)
+            {
+                //std::cout<<"\n"<<v_seq[j]<<" ";
+                s_index[v_seq[j]]=j;
+            }
+
+            for(auto &k : conn_comp[i])
+                for(auto &v : adj_[k])
+                {
+                    if(mask[v]==false)
+                        adj[k].push_back(v);
+                    else if(s_index[k] < s_index[v])
+                        adj[k].push_back(v);
+                }
+            for(auto &k : conn_comp[i])
+                mask[k]=false;
+            
+            v_seq.clear();  
+            visited.clear();
+
+        for (int i = 0; i < n_vtx; i++)
+            visited[i]=false;      
+        }
+    }*/
+    int num_cid=num_components;
     std::vector<std::vector<int> > component_idx(num_cid), idx_component(num_cid);
     // Map Components
     for (size_t cid = 0; cid < num_cid; cid++)
@@ -143,7 +210,7 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
         {   
             for (size_t k = 0; k < adj_[j].size(); k++)
             {   
-                if(visited[adj_[j][k]]==true && idx_component[cid][j]!= idx_component[cid][adj_[j][k]])
+                if(visited[adj_[j][k]]==true)// && idx_component[cid][j]!= idx_component[cid][adj_[j][k]])
                     {
                     adj_scc[cid][idx_component[cid][j]].push_back(idx_component[cid][adj_[j][k]]);
                     }
@@ -173,13 +240,14 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
         //printGraph(comp_adj, comp_size);
         if(comp_size > 1)
         {
-            for (size_t u = 0; u < comp_size; u++)
+            /*for (size_t u = 0; u < comp_size; u++)
             {
                 if (visit[u] == false)
                 {
-                    DFS_order(comp_adj, visit, u, dfs_order);
+                    Fillorder(comp_adj, visit, u, dfs_order);
                 }
-            }
+            }*/
+            Fillorder(comp_adj, visit, 0, dfs_order);
             for (size_t u = 0; u < comp_size; u++)
             {
                 v_sequence.push_back(dfs_order.top());
@@ -247,8 +315,8 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
         }
     } 
     //printGraph(adj, n_vtx);
+     
 }
-
 graphUtils::graphUtils(gfa_t *g)
 {
     this->g = g;
@@ -497,6 +565,7 @@ void graphUtils::Connected_components()
                 //std::cout<<"->"<<k;
                 dag_edge++;
                 
+                
             }
             dag_vertex++;
             //std::cout<<"\n";
@@ -506,9 +575,9 @@ void graphUtils::Connected_components()
         comp_adj.clear(); 
     }
     //std::cout<<"Total number of edges in cyclic graph "<<comp_count1<<"\n";
+    std::cout<<"\nTotal number of edges in DAG "<<dag_edge<<"\n";
     std::cout<<"Total number of nodes in DAG "<<dag_vertex<<"\n\n";
-    std::cout<<"Total number of edges in DAG "<<dag_edge<<"\n";
-    std::cout<<"Number of edged removed :"<<adj_edge-dag_edge<<"\n\n";
+    std::cout<<"Number of edges removed :"<<adj_edge-dag_edge<<"\n\n";
    
 
 }
@@ -583,7 +652,7 @@ int graphUtils::is_cyclic() // Check cyclicity of component and convert to acycl
     q.clear();
     in_degree.clear();
     out_degree.clear();
-    std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]"<< std::endl;
+    std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]\n"<< std::endl;
     return cycle_count;
 }
 
