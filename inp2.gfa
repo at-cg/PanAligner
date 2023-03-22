@@ -1,0 +1,9 @@
+S	1	ATCG
+S	2	ATCG
+S       3       ATCG
+S       4       ATCG
+L	1	+	2	+	0M
+L       2       +       3       +       0M
+L       3       +       4       +       0M
+L       4       +       1       +       0M
+

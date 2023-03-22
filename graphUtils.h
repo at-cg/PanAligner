@@ -27,6 +27,7 @@
 
 
 
+
 // Anchors
 struct Anchors {
 	int v;
@@ -102,7 +103,7 @@ class graphUtils
 	std::vector<std::vector<int>> idx_component;         // mapping between local index and origional index
 	std::vector<std::vector<std::vector<int>>> path_cover; // Path Cover
 	// in_node and out_node computation 
-	std::vector<std::vector<std::vector<int>>> in_node;
+	std::vector<std::vector<std::vector<int>>> in_node;//, cyclic_innode;
 	std::vector<std::vector<std::vector<int>>> out_node;
 	/* Map Top_Sort */
 	std::vector<std::vector<int>> map_top_sort;	
