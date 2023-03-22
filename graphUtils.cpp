@@ -1079,7 +1079,7 @@ bool check(std::vector<std::vector<V>> DS_1, std::vector<std::vector<V>> DS_2){
     }
     
 
-    return true;
+    return is_same;
 }
 
 void graphUtils::MPC_index()
