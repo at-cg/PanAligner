@@ -14,7 +14,7 @@ void Fillorder(std::vector<std::vector<int>> &un_adj, std::vector<bool> &visited
                 Fillorder(un_adj, visited, v, stack);
             }
         }
-    //std::cout<<u<<" ";
+    //// std::cout<<u<<" ";
     stack.push(u);
 }
 
@@ -32,7 +32,7 @@ void Transpose_G(std::vector<std::vector<int>> &un_adj, std::vector<std::vector<
 void DFS_SCC(std::vector<std::vector<int>> &adj, std::vector<bool> &visited, int u, std::vector<int> &component, int num_components, std::stack<int> &stack)
 {
     visited[u]=true;
-    //std::cout<<u<<" ";
+    //// std::cout<<u<<" ";
     component[u]=num_components;
     for (auto x : adj[u])
         if(!visited[x])
@@ -104,7 +104,7 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
         {
             DFS_SCC(T_adj, visited, s, component, num_components, stack);
             num_components++;
-            //std::cout<<"\n";
+            //// std::cout<<"\n";
         }
 
     } 
@@ -120,15 +120,15 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
         conn_comp[component[i]].push_back(i); // Add Vertex to it's component
     }
 
-    /*std::cout<<"Total number of SCCs are: "<<num_components<<"\n";
+    /*// std::cout<<"Total number of SCCs are: "<<num_components<<"\n";
     for(size_t i=0; i< num_components; i++)
     {
-        std::cout<<"SCC "<<i<<" : [";
+        // std::cout<<"SCC "<<i<<" : [";
         for (auto &v: conn_comp[i])
         {
-            std::cout<<v<<" ";
+            // std::cout<<v<<" ";
         }
-        std::cout<<"]\n";
+        // std::cout<<"]\n";
     }*/
 
     /*for(size_t i=0; i< num_components; i++)
@@ -150,13 +150,13 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
 
             }
             //vtx=conn_comp[i][0];
-            //std::cout<<"starting vertex"<<vtx;
+            //// std::cout<<"starting vertex"<<vtx;
             //SCC_DFS(adj_, visited, mask, vtx, v_seq);
 
 
             for(size_t j=0; j< conn_comp[i].size(); j++)
             {
-                //std::cout<<"\n"<<v_seq[j]<<" ";
+                //// std::cout<<"\n"<<v_seq[j]<<" ";
                 s_index[v_seq[j]]=j;
             }
 
@@ -183,16 +183,16 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
     // Map Components
     for (size_t cid = 0; cid < num_cid; cid++)
     {   
-        //std::cout<<conn_comp[cid].size()<<" ";
+        //// std::cout<<conn_comp[cid].size()<<" ";
         component_idx[cid].resize(conn_comp[cid].size());
         idx_component[cid].resize(n_vtx);
         for (size_t j = 0; j < conn_comp[cid].size(); j++)
         {
-            //std::cout<<conn_comp[cid][j]<<" ";
+            //// std::cout<<conn_comp[cid][j]<<" ";
             component_idx[cid][j] = conn_comp[cid][j]; // map global to local
-            //std::cout<<component_idx[cid][j]<<"\n";
+            //// std::cout<<component_idx[cid][j]<<"\n";
             idx_component[cid][conn_comp[cid][j]] = j; // map local to global
-            //std::cout<<idx_component[cid][conn_comp[cid][j]]<<"\n";
+            //// std::cout<<idx_component[cid][conn_comp[cid][j]]<<"\n";
 
         }
     }
@@ -257,7 +257,7 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
 
             for (size_t i = 0; i < comp_size; i++)
             {
-                //std::cout<<v_sequence[i]<<" ";
+                //// std::cout<<v_sequence[i]<<" ";
                 s_index[v_sequence[i]]=i;
             }
             
@@ -276,15 +276,15 @@ void SCC(std::vector<std::vector<int> > &adj, int n_vtx)
             s_index.clear();
             v_sequence.clear();
         }
-        /*std::cout<<"DAG converted components \n";
+        /*// std::cout<<"DAG converted components \n";
         for (size_t j = 0; j < comp_size; j++)
         {   
-            std::cout<<j;
+            // std::cout<<j;
             for (auto &k : adj_scc[cid][j])
             {  
-                std::cout<<"->"<<k;
+                // std::cout<<"->"<<k;
             }
-            std::cout<<"\n";
+            // std::cout<<"\n";
         }*/
     }
     for (int i = 0; i < n_vtx; i++)
@@ -379,10 +379,10 @@ void graphUtils::read_graph()
     //std::vector<std::vector<int>> adj(n_vtx);
 
     //int diff;
-    //std::cout<<"Print the graph"<<std::endl;
-    std::cout<<"\nNumber of nodes and edges are: "<<n_vtx/2<<" "<<num_edges/2<<std::endl;
-    std::cout<<"\nEdges in cyclic graph: "<<num_edges;
-    std::cout<<"\nNumber of nodes in cyclic graph: "<<n_vtx<<std::endl;
+    //// std::cout<<"Print the graph"<<std::endl;
+    std::cerr<< "Number of nodes and edges in Cyclic graph : " <<n_vtx<<" "<<num_edges<<std::endl;
+    // std::cout<<"\nEdges in cyclic graph: "<<num_edges;
+    // std::cout<<"\nNumber of nodes in cyclic graph: "<<n_vtx<<std::endl;
 
     /*SCC(adj, n_vtx);
     for (size_t i = 0; i < n_vtx; i++)
@@ -407,8 +407,8 @@ void graphUtils::read_graph()
         }
         std::cerr << std::endl;
     }
-    std::cout<<"Edges in DAG: "<<dag_edge<<"\n";
-    std::cout<<"No. of edges removed: "<<adj_edge-dag_edge<<"\n\n";
+    // std::cout<<"Edges in DAG: "<<dag_edge<<"\n";
+    // std::cout<<"No. of edges removed: "<<adj_edge-dag_edge<<"\n\n";
     */
 }
 
@@ -457,7 +457,7 @@ void DFS(std::vector<std::vector<int>> un_adj, std::vector<bool> &visited, int u
 
 void graphUtils::Connected_components()
 {
-    print_graph();
+    // print_graph();
     std::vector<std::vector<int>> comp_adj;
     int comp_size, dag_edge=0, dag_vertex=0, adj_edge=0;
     size_t num_components;
@@ -541,18 +541,18 @@ void graphUtils::Connected_components()
     }
     // In degree and Outdegree computation
 
-    //std::cout<<"No. of vertices in each component are:"<<std::endl;
+    //// std::cout<<"No. of vertices in each component are:"<<std::endl;
     for (size_t cid = 0; cid < num_cid; cid++)
     {   
-        std::cout<<"Cyclic component"<<cid;
+       // std::cout<<"Cyclic component"<<cid;
         for (size_t j = 0; j < adj_cc[cid].size(); j++)
         {   
-            std::cout<<j;
+           // std::cout<<j;
             for (auto const &k : adj_cc[cid][j])
             {
-                std::cout<<"->"<<k;
+               // std::cout<<"->"<<k;
             }
-            std::cout<<"\n";
+           // std::cout<<"\n";
         }
         comp_size=conn_comp[cid].size();
         comp_adj.resize(comp_size);
@@ -562,7 +562,7 @@ void graphUtils::Connected_components()
         {   
             for (auto const &k : adj_cc[cid][j])
             {
-                //std::cout<<"->"<<adj_[j][k];
+                //// std::cout<<"->"<<adj_[j][k];
                 if(k!= j)
                     {
                         cyclic_innode[cid][k].push_back(j);
@@ -576,30 +576,32 @@ void graphUtils::Connected_components()
         SCC(comp_adj, comp_size);
         adj_cc[cid].clear();
         adj_cc[cid].resize(comp_size);
-        //std::cout<<"DAG Component"<<cid<<"\n";
+        //// std::cout<<"DAG Component"<<cid<<"\n";
         
         for (size_t j = 0; j < comp_adj.size(); j++)
         {   
-            //std::cout<<j;
+            //// std::cout<<j;
             for (auto const &k : comp_adj[j])
             {
                 adj_cc[cid][j].push_back(k);
-                //std::cout<<"->"<<k;
+                //// std::cout<<"->"<<k;
                 dag_edge++;
                 
                 
             }
             dag_vertex++;
-            //std::cout<<"\n";
+            //// std::cout<<"\n";
         }
-        //std::cout<<"Total number of edges in Acyclic Component "<<cid<<" :"<<"-> [";
-        //std::cout<<comp_count<<"] \n";
+        //// std::cout<<"Total number of edges in Acyclic Component "<<cid<<" :"<<"-> [";
+        //// std::cout<<comp_count<<"] \n";
         comp_adj.clear(); 
     }
-    //std::cout<<"Total number of edges in cyclic graph "<<comp_count1<<"\n";
-    std::cout<<"\nTotal number of edges in DAG "<<dag_edge<<"\n";
-    std::cout<<"Total number of nodes in DAG "<<dag_vertex<<"\n\n";
-    std::cout<<"Number of edges removed :"<<adj_edge-dag_edge<<"\n\n";
+    //// std::cout<<"Total number of edges in cyclic graph "<<comp_count1<<"\n";
+    // std::cout<<"\nTotal number of edges in DAG "<<dag_edge<<"\n";
+    // std::cout<<"Total number of nodes in DAG "<<dag_vertex<<"\n\n";
+    // std::cout<<"Number of edges removed :"<<adj_edge-dag_edge<<"\n\n";
+    std::cerr<< "Number of nodes and edges in DAG : " <<dag_vertex<<" "<<dag_edge<<std::endl;
+    std::cerr<< "Number of edges removed : " << adj_edge-dag_edge <<std::endl;
    
 
 }
@@ -668,7 +670,7 @@ int graphUtils::is_cyclic() // Check cyclicity of component and convert to acycl
     }
     for (size_t i = 0; i < num_comp; i++)
     {
-        std::cout<<cid_cycle[i]<<" ";
+        // std::cout<<cid_cycle[i]<<" ";
     }
     
     q.clear();
@@ -742,7 +744,7 @@ void graphUtils::topologicat_sort()
         // verify component is acyclic
         if (count != adj_cc[cid].size())
         {
-            std::cout << " Can't do Topological ordering : cycle exist " << std::endl; // Just to make sure in case boost has failed to compute cycles
+            // std::cout << " Can't do Topological ordering : cycle exist " << std::endl; // Just to make sure in case boost has failed to compute cycles
         }
         // std::cerr << " Top sort for cid : " << cid << std::endl;
         // for (size_t i = 0; i < top_order[cid].size(); i++)
@@ -766,7 +768,7 @@ void graphUtils::topologicat_sort()
     }
     in_degree.clear();
     out_degree.clear();
-    // std::cout << " Computed Topological Order " << std::endl;
+   // std::cout << " Computed Topological Order " << std::endl;
 }
 
 std::vector<std::vector<int>> graphUtils::shrink(int cid)
@@ -1033,25 +1035,51 @@ void graphUtils::MPC()
       min = min<path_cover[cid].size()?min:path_cover[cid].size();
       max = max>path_cover[cid].size()?max:path_cover[cid].size();
   }
-  fprintf(stderr, "[M::%s] range wcc [%d-%d] \n", __func__,min,max);
+  fprintf(stderr, "[M::%s] range MPC [%d-%d] \n", __func__,min,max);
   // std::cerr << "[range wcc [" << min << "-" << max << "]" << std::endl; 
    // std::cerr << " MPC Computed! " << std::endl;
-    /*std::cout<<"Path cover \n";
+    /*// std::cout<<"Path cover \n";
     for (size_t cid = 0; cid < num_cid; cid++)
     {   
-        std::cout<<"Component"<<cid<<"\n";
+        // std::cout<<"Component"<<cid<<"\n";
         for (size_t j = 0; j < path_cover[cid].size(); j++)
         {   
-            std::cout<<j;
+            // std::cout<<j;
             for (auto const &k : path_cover[cid][j])
             {
-                std::cout<<"->"<<k;
+                // std::cout<<"->"<<k;
                 
             }
-            std::cout<<"\n";
+            // std::cout<<"\n";
 
         }
     }*/
+}
+
+template<typename V>
+bool check(std::vector<std::vector<V>> DS_1, std::vector<std::vector<V>> DS_2){
+
+    assert(DS_1.size() == DS_2.size());
+
+    bool is_same = true;
+
+    for (auto k=0; k < DS_1.size(); k++)
+    {
+        assert(DS_1[k].size() == DS_2[k].size());
+        for (auto v = 0; v < DS_1[k].size(); v++)
+        {
+            if (DS_1[k][v] != DS_2[k][v])
+            {
+                is_same == false;
+                break;
+            }
+            
+        }
+        
+    }
+    
+
+    return true;
 }
 
 void graphUtils::MPC_index()
@@ -1063,9 +1091,11 @@ void graphUtils::MPC_index()
     std::vector<std::vector<std::vector<int64_t>>> D_approx;
     std::vector<std::vector<int64_t>> D_cyclic;
     std::vector<std::vector<bool>> processed;
+    std::vector<std::vector<bool>> loc_processed;
     D_approx.resize(num_cid);
     D_cyclic.resize(num_cid);
     processed.resize(num_cid);
+    loc_processed.resize(num_cid);
     path.resize(num_cid);
     L2R.resize(num_cid);
     l2r.resize(num_cid);
@@ -1086,15 +1116,15 @@ void graphUtils::MPC_index()
         */
         int K = path_cover[cid].size();
         int N = adj_cc[cid].size();
-        std::cout<<"DAG component"<<cid<<"\n";
+       // std::cout<<"DAG component"<<cid<<"\n";
         for (size_t j = 0; j < adj_cc[cid].size(); j++)
         {   
-            std::cout<<j;
+            // std::cout<<j;
             for (auto const &k : adj_cc[cid][j])
             {
-                std::cout<<"->"<<k;
+               // std::cout<<"->"<<k;
             }
-            std::cout<<"\n";
+           // std::cout<<"\n";
         }
 
         // Compute index ( arranged in topological order by MPC , no need to sort)
@@ -1121,18 +1151,18 @@ void graphUtils::MPC_index()
         L2R[cid].resize(path_cover[cid].size(), std::vector<int>(adj_cc[cid].size(),-1));
         Dis[cid].resize(path_cover[cid].size(),std::vector<int64_t>(adj_cc[cid].size(),std::numeric_limits<int64_t>::max()/2)); 
         path[cid].resize(N);
-        //std::cout<<std::numeric_limits<int64_t>::max()/2<<"\n";
-        std::cout<<"Path covers for component"<<cid<<"\n";
+        //// std::cout<<std::numeric_limits<int64_t>::max()/2<<"\n";
+       // std::cout<<"Path covers for component"<<cid<<"\n";
         for (int k = 0; k < K; k++)
         {   
-            std::cout<<"\nk="<<k<<":";
+           // std::cout<<"\nk="<<k<<":";
             int i = 0;
             for (auto v:path_cover[cid][k])
             {
                 last2reach[cid][k][v] = i++;
                 L2R[cid][k][v]=last2reach[cid][k][v];
                 path[cid][v].push_back(k);
-                std::cout<<v<<"->";
+               // std::cout<<v<<"->";
             }
         }
 
@@ -1183,7 +1213,7 @@ void graphUtils::MPC_index()
             L2R_itr++;
         }
         L2R_flag=false;
-        //std::cout<<"Number of L2R computation iterations for componenet "<<cid<<": "<<L2R_itr<<"\n";
+        //// std::cout<<"Number of L2R computation iterations for componenet "<<cid<<": "<<L2R_itr<<"\n";
         itr1=std::max(itr1, L2R_itr);
         L2R_itr=0;
 
@@ -1216,7 +1246,7 @@ void graphUtils::MPC_index()
                             if (last2reach[cid][k][v] == last2reach[cid][k][u] && last2reach[cid][k][v]!= -1)
                             {
                                 Distance[cid][k][v] = std::min(Distance[cid][k][v], (Distance[cid][k][u])+(int64_t)node_len[component_idx[cid][u]]);
-                                //std::cout<<(int64_t)node_len[component_idx[cid][u]]<<" ";
+                                //// std::cout<<(int64_t)node_len[component_idx[cid][u]]<<" ";
                             }
                         }
                     }   
@@ -1234,11 +1264,11 @@ void graphUtils::MPC_index()
                     Dis[cid][k][v]=Distance[cid][k][v];
                 }
             }
-        //std::cout<<D_itr<<" ";
-        D_itr++;
+            //// std::cout<<D_itr<<" ";
+            D_itr++;
         }
         D_flag=false;
-        //std::cout<<"\nNumber of approx Distance computation iterations for componenet "<<cid<<": "<<D_itr<<"\n";
+        //// std::cout<<"\nNumber of approx Distance computation iterations for componenet "<<cid<<": "<<D_itr<<"\n";
         itr2=std::max(itr2, D_itr);
         D_itr=0;
         
@@ -1301,73 +1331,77 @@ void graphUtils::MPC_index()
         l2r[cid].resize(path_cover[cid].size(), std::vector<int>(adj_cc[cid].size(),-1));
         Dis[cid].resize(path_cover[cid].size(),std::vector<int64_t>(adj_cc[cid].size(),std::numeric_limits<int64_t>::max()/2)); 
         processed[cid].resize(adj_cc[cid].size(), false);
-        int w;
+        loc_processed[cid].resize(adj_cc[cid].size(), false);
 
-        //Initialization 
-        for (int k = 0; k < K; k++)
+        for (size_t k = 0; k < K; k++)
         {
-            int i = 0;
-            for (auto v:path_cover[cid][k])
-                l2r[cid][k][v]=i++; 
-        }
-        
-	//Exact Last2reach algorithm
-        for(int u : Q)
-        {
-            processed[cid][u]= true;
-            w=u;
-            for (int k = 0; k < K; k++)
+            for (size_t v = 0; v < N; v++)
             {
-                //processed[cid][u]= true;
-                //w=u;
-		// std::cerr << " w : " << w << std::endl;
-                while(w != -1 && !cyclic_innode[cid][w].empty())
+                if (index[cid][k][v != -1]) // v lies on the path
                 {
-                    for(int v : cyclic_innode[cid][w])
-                    {
-                        if(l2r[cid][k][v] > l2r[cid][k][u])
-                        {
-                            l2r[cid][k][u]=l2r[cid][k][v];
-                            w=v;
-			                // std::cerr << "w :" << w << " u :" << u << std::endl;
-                        }
-                        else
-                        {
-				            w = u;
-				            // std::cerr << "w :" << w << " u :" << u << std::endl;
-			            }
-                    }
-                    if(processed[cid][w]==true)
-                    { 
-                        w=-1;
-                    }
-		        // std::cerr << " w : " << w  << " cyclic_innode[cid][w].size() : " << cyclic_innode[cid][w].size() << " processed : " << processed[cid][w] << std::endl; 
+                    l2r[cid][k][v]=index[cid][k][v];  // Initialize with the index
                 }
             }
         }
 
 
-        for (int k = 0; k < K; k++)
+        // last2reach algorithm
+        for (auto u:Q) // Linearized order
         {
-            for (int v : Q) 
+            processed[cid][u] = true;
+            int w = u;
+            bool stop = false;
+            for (size_t i = 0; i < K; i++)
             {
-                //if(last2reach[cid][k][v]!= l2r[cid][k][v])
-                //{
-                    //check1=false;
-                    //break;
-                //}
-            //if(check1==false)
-                //break;   
-            std::cout<<"\nlast to reach("<<k<<","<<v<<"):"<<last2reach[cid][k][v]<<" "<<l2r[cid][k][v];             
+                while (w != -1 && !cyclic_innode[cid][w].empty() && !stop)
+                {
+                    for (auto v:cyclic_innode[cid][w])
+                    {
+                        if (l2r[cid][i][v] > l2r[cid][i][u])
+                        {
+                            l2r[cid][i][u] = l2r[cid][i][v];
+                            w = v;
+                            // std::cerr << " u : " << u << " w : " << w << " l2r[cid][i][u] : " <<l2r[cid][i][u] << " l2r[cid][i][v] : " << l2r[cid][i][v] << std::endl;
+                        }else
+                        {
+                            stop = true;
+                        }
+
+                    }
+                    // std::cerr << " u : " << u << " w : " << w << " processed[cid][w] : "<< processed[cid][w] << " cyclic_innode[cid][w].empty() : " << cyclic_innode[cid][w].size() << std::endl;
+                    if (processed[cid][w])
+                    {
+                       w = -1;
+                    }
+                    
+                }
             }
+            
         }
 
-        //std::cout<<"\nCheck flag for lasr2reach verification for component " << cid <<" is:"<<check1<<"\n";
-        check1=true;
+        std::cerr << "cid : " << cid <<  " last2reach is_true : " << check(last2reach[cid], l2r[cid]) << std::endl;
 
-	// exit(0);
 
-        /*Distance verification
+        // for (int k = 0; k < K; k++)
+        // {
+        //     for (int v : Q) 
+        //     {
+        //         //if(last2reach[cid][k][v]!= l2r[cid][k][v])
+        //         //{
+        //             //check1=false;
+        //             //break;
+        //         //}
+        //     //if(check1==false)
+        //         //break;   
+        //     // std::cout<<"\nlast to reach("<<k<<","<<v<<"):"<<last2reach[cid][k][v]<<" "<<l2r[cid][k][v];             
+        //     }
+        // }
+
+        // //// std::cout<<"\nCheck flag for lasr2reach verification for component " << cid <<" is:"<<check1<<"\n";
+        // check1=true;
+
+        // Distance verification
+        
         processed[cid].clear();
         processed[cid].resize(adj_cc[cid].size(), false);
         
@@ -1381,47 +1415,46 @@ void graphUtils::MPC_index()
             }     
         }
 
-        //Exact Distance algorithm
-        for (int k = 0; k < K; k++)
+        // Distance algorithm
+        for (auto u:Q) // Linearized order
         {
-            for (int u : Q) 
+            processed[cid][u] = true;
+            int w = u;
+            bool stop = false;
+            for (size_t i = 0; i < K; i++)
             {
-                processed[cid][u]= true;
-                w=u;
-                while(w != -1 && cyclic_innode[cid][w].size()!=0)
+                while (w != -1 && !cyclic_innode[cid][w].empty() && !stop)
                 {
-                    for(size_t v : cyclic_innode[cid][w])
+                    for (auto v:cyclic_innode[cid][w])
                     {
-                        if(L2R[cid][k][v] == L2R[cid][k][u] and L2R[cid][k][u]!=-1)
+                        if (l2r[cid][i][v] == l2r[cid][i][u] && l2r[cid][i][u] != -1)
                         {
-                            if((Dis[cid][k][v] + (int64_t)node_len[component_idx[cid][v]]) < Dis[cid][k][u])
+                            if (Dis[cid][i][v] + (int64_t)node_len[component_idx[cid][v]] < Dis[cid][i][u])
                             {
-                                Dis[cid][k][u] = (int64_t)node_len[component_idx[cid][v]] + Dis[cid][k][v];
-                                w=v;
+                                Dis[cid][i][u] = Dis[cid][i][v] + (int64_t)node_len[component_idx[cid][v]];
+                            }else
+                            {
+                                stop = true;
                             }
+                            
+                            // std::cerr << " u : " << u << " w : " << w << " Dis[cid][i][u] : " << Dis[cid][i][u] << " Dis[cid][i][v] : " << Dis[cid][i][v] << std::endl;
                         }
+
                     }
-                    if(processed[cid][w]==true)
-                        w=-1;
+                    // std::cerr << " u : " << u << " w : " << w << " processed[cid][w] : "<< processed[cid][w] << " cyclic_innode[cid][w].empty() : " << cyclic_innode[cid][w].size() << std::endl;
+                    if (processed[cid][w])
+                    {
+                       w = -1;
+                    }
+                    
                 }
             }
-        }
-        for (int k = 0; k < K; k++)
-        {
-            for (int v : Q) 
-            {
-                if(Distance[cid][k][v]!= Dis[cid][k][v])
-                {
-                    check2=false;
-                    break;
-                }
-            if(check2==false)
-                break;                
-            }
+            
         }
 
-        //std::cout<<"\nCheck flag for Distance verification for component " << cid <<" is:"<<check2<<"\n";
-        check2=true;
+        std::cerr << "cid : " << cid << " Distance is_true : " << check(Dis[cid], Distance[cid]) << std::endl;
+
+
 
         /*D_approx and D_cyclic computation
         D_approx[cid].resize(adj_cc[cid].size(), std::vector<int64_t>(adj_cc[cid].size(), std::numeric_limits<int64_t>::max()/2)); 
@@ -1450,9 +1483,9 @@ void graphUtils::MPC_index()
                         }
                     }
                 }
-                // std::cout<<D_approx[cid][u][v]<<" ";
+               // std::cout<<D_approx[cid][u][v]<<" ";
             }  
-            // std::cout<<"\n\n";
+           // std::cout<<"\n\n";
         }
 
 	std::cerr << " cid : " << cid << "D_cyclic : " << "\n"; 
@@ -1464,7 +1497,7 @@ void graphUtils::MPC_index()
             {
                 D_cyclic[cid][v]= std::min(D_cyclic[cid][v], D_approx[cid][u][v]+ (int64_t)node_len[component_idx[cid][v]]);
             }
-            std::cout<<D_cyclic[cid][v]<<" ";
+            // std::cout<<D_cyclic[cid][v]<<" ";
         }  
         */
        /* std::cerr << " cid : " << cid << "Last2reach and l2r : " << "\n"; 
@@ -1472,7 +1505,7 @@ void graphUtils::MPC_index()
         {
             for(int v: Q)
             {
-                std::cout<<last2reach[cid][k][v]<<" "<<l2r[cid][k][v]<<"\n";
+                // std::cout<<last2reach[cid][k][v]<<" "<<l2r[cid][k][v]<<"\n";
             }
         }
 	*/
@@ -1481,9 +1514,10 @@ void graphUtils::MPC_index()
         
 
     }
-    std::cout<< "\nNumber of L2R computation iterations for the graph: "<<itr1<<"\n";
-    std::cout<<"Number of approx Distance computation iterations for the graph: "<<itr2<<"\n\n";
-    //std::cout<<"\n";
+   // std::cout<< "\nNumber of L2R computation iterations for the graph: "<<itr1<<"\n";
+   // std::cout<<"Number of approx Distance computation iterations for the graph: "<<itr2<<"\n\n";
+    // //// std::cout<<"\n";
+    // exit(0);
 }
 
 bool compare_T(const Tuples &a, const Tuples &b){
