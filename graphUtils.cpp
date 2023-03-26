@@ -1458,6 +1458,7 @@ void graphUtils::MPC_index()
                 }
             }
         }
+        D_approx[cid].clear();
     }
     std::cout<< "\nNumber of L2R computation iterations for the graph: "<<itr1<<"\n";
     std::cout<<"Number of approx Distance computation iterations for the graph: "<<itr2<<"\n\n";
