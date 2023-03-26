@@ -1085,7 +1085,7 @@ bool check(std::vector<std::vector<V>> DS_1, std::vector<std::vector<V>> DS_2){
 void graphUtils::MPC_index()
 {   
     int L2R_itr=0, itr1=0, D_itr=0, itr2=0;
-    bool L2R_flag=false, L2R_temp, D_flag=false, D_temp, check1=true, check2=true;
+    bool L2R_flag=false, L2R_temp, D_flag=false, D_temp;
     std::vector<std::vector<std::vector<int>>> L2R, path;
     std::vector<std::vector<std::vector<int64_t>>> Dis;
     std::vector<std::vector<std::vector<int64_t>>> D_approx;
@@ -1487,6 +1487,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     M.resize(num_cid);
     std::vector<std::vector<mg128_t>> idx_Anchor;
     idx_Anchor.resize(num_cid);
+    bool C_flag= false, temp_flag;
     for (int j = 0; j < anchors.size(); j++)
     {
         Anchors M_; // Anchor
@@ -1513,10 +1514,11 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         std::vector<IndexT> I(K,IndexT(defaul_value));
         /* Initialise T */
         std::vector<Tuples> T; // Search Tree
-        std::vector<std::pair<int64_t,int>> C;
+        std::vector<std::pair<int64_t,int>> C, C_temp;
         C.resize(N);
-	int64_t sf = scale_factor;
-	int64_t cost =(int64_t) (M[cid][0].d-M[cid][0].c+1)*sf;
+        C_temp.resize(N);
+	    int64_t sf = scale_factor;
+	    int64_t cost =(int64_t) (M[cid][0].d-M[cid][0].c+1)*sf;
         for (int j = 0; j < N; j++)
         {
             int node = M[cid][j].v;
@@ -1566,6 +1568,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             }
             /* Initialise C */
             C[j] = {cost , -1};
+            C_temp[j]= {cost , -1}; 
         }
 
         /* Erase redundant and Sort the Tuples by T.v, T.pos, T.task */ 
@@ -1573,30 +1576,47 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         std::sort(T.begin(),T.end(),compare_T);
 
         // Chaining
-        for (auto t:T) // in Topological Order of their nodes
+        while(!C_flag)
         {
-            if(t.task == 0)
+            for (auto t:T) // in Topological Order of their nodes
             {
-                int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
-                int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
-                std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
-                if (rmq.first > std::numeric_limits<int64_t>::min())
+                if(t.task == 0)
                 {
-                    C[t.anchor] = std::max(C[t.anchor], { rmq.first - val_1 + val_2, rmq.second });
+                    int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
+                    int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
+                    std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
+                    if (rmq.first > std::numeric_limits<int64_t>::min())
+                    {
+                        C[t.anchor] = std::max(C[t.anchor], { rmq.first - val_1 + val_2, rmq.second });
+                    }
+                    if (param_z)
+                    {
+                        std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
+                    }
                 }
-                if (param_z)
+                else
                 {
-                    std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
+                    int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
+                    I[t.path].add(M[cid][t.anchor].d, {C[t.anchor].first + val_3 , t.anchor});
+                    if (param_z)
+                    {
+                        std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path << " val_3 : " << val_3  << " M.y : " << M[cid][t.anchor].y <<  " dist2begin : "  << dist2begin[cid][t.path][t.v] << " M[i].d : " << t.d << "\n"; 
+                    }
                 }
-            }else
-            {
-                int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
-                I[t.path].add(M[cid][t.anchor].d, {C[t.anchor].first + val_3 , t.anchor});
-                if (param_z)
+                if(C[t.anchor]!=C_temp[t.anchor])
                 {
-                    std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path << " val_3 : " << val_3  << " M.y : " << M[cid][t.anchor].y <<  " dist2begin : "  << dist2begin[cid][t.path][t.v] << " M[i].d : " << t.d << "\n"; 
+                    temp_flag=false;
+                    C_flag=(C_flag && temp_flag);
                 }
+                else
+                {
+                    temp_flag=false;
+                    C_flag=(C_flag && temp_flag);
+                }
+                C_temp[t.anchor]=C[t.anchor];
             }
+            //reinitializing RMQ tree
+
         }
 
         if (N!=0)
