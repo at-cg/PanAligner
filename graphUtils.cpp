@@ -457,7 +457,7 @@ void DFS(std::vector<std::vector<int>> un_adj, std::vector<bool> &visited, int u
 
 void graphUtils::Connected_components()
 {
-    print_graph();
+    //print_graph();
     std::vector<std::vector<int>> comp_adj;
     int comp_size, dag_edge=0, dag_vertex=0, adj_edge=0;
     size_t num_components;
@@ -544,16 +544,16 @@ void graphUtils::Connected_components()
     //// std::cout<<"No. of vertices in each component are:"<<std::endl;
     for (size_t cid = 0; cid < num_cid; cid++)
     {   
-       // std::cout<<"Cyclic component"<<cid;
+       /*std::cout<<"Cyclic component"<<cid;
         for (size_t j = 0; j < adj_cc[cid].size(); j++)
         {   
-           // std::cout<<j;
+           std::cout<<j;
             for (auto const &k : adj_cc[cid][j])
             {
-               // std::cout<<"->"<<k;
+                std::cout<<"->"<<k;
             }
-           // std::cout<<"\n";
-        }
+            std::cout<<"\n";
+        }*/
         comp_size=conn_comp[cid].size();
         comp_adj.resize(comp_size);
         cyclic_innode[cid].resize(comp_size);
@@ -1086,17 +1086,19 @@ void graphUtils::MPC_index()
 {   
     int L2R_itr=0, itr1=0, D_itr=0, itr2=0;
     bool L2R_flag=false, L2R_temp, D_flag=false, D_temp, check1=true, check2=true;
-    std::vector<std::vector<std::vector<int>>> L2R, path, l2r;
+    std::vector<std::vector<std::vector<int>>> L2R, path;
     std::vector<std::vector<std::vector<int64_t>>> Dis;
     std::vector<std::vector<std::vector<int64_t>>> D_approx;
     std::vector<std::vector<int64_t>> D_cyclic;
     std::vector<std::vector<bool>> processed;
+    //std::vector<std::vector<bool>> loc_processed;
     D_approx.resize(num_cid);
     D_cyclic.resize(num_cid);
     processed.resize(num_cid);
+    //loc_processed.resize(num_cid);
     path.resize(num_cid);
     L2R.resize(num_cid);
-    l2r.resize(num_cid);
+    //l2r.resize(num_cid);
     index.resize(num_cid);
     rev_index.resize(num_cid);
     dist2begin.resize(num_cid);
@@ -1129,6 +1131,7 @@ void graphUtils::MPC_index()
         index[cid].resize(path_cover[cid].size(),std::vector<int>(adj_cc[cid].size(),-1));
         rev_index[cid].resize(path_cover[cid].size(),std::vector<int>(adj_cc[cid].size(),-1));
         dist2begin[cid].resize(path_cover[cid].size(),std::vector<int64_t>(adj_cc[cid].size(),0));
+        int64_t D_approx_temp;
     
         for (size_t k = 0; k < path_cover[cid].size(); k++)
         {
@@ -1150,17 +1153,17 @@ void graphUtils::MPC_index()
         Dis[cid].resize(path_cover[cid].size(),std::vector<int64_t>(adj_cc[cid].size(),std::numeric_limits<int64_t>::max()/2)); 
         path[cid].resize(N);
         //// std::cout<<std::numeric_limits<int64_t>::max()/2<<"\n";
-       // std::cout<<"Path covers for component"<<cid<<"\n";
+        //std::cout<<"Path covers for component"<<cid<<"\n";
         for (int k = 0; k < K; k++)
         {   
-           // std::cout<<"\nk="<<k<<":";
+            //std::cout<<"\nk="<<k<<":";
             int i = 0;
             for (auto v:path_cover[cid][k])
             {
                 last2reach[cid][k][v] = i++;
                 L2R[cid][k][v]=last2reach[cid][k][v];
                 path[cid][v].push_back(k);
-               // std::cout<<v<<"->";
+                //std::cout<<v<<"->";
             }
         }
 
@@ -1184,114 +1187,108 @@ void graphUtils::MPC_index()
         }
 
         // last2reach computation
-        while (!L2R_flag) {
-            L2R_flag = true;
-            for (int k = 0; k < K; k++) {
-                for (int v: Q) {
-                for (size_t u: cyclic_innode[cid][v]) {
-                    last2reach[cid][k][v] = std::max(last2reach[cid][k][v], last2reach[cid][k][u]);
-                }
-                if (L2R[cid][k][v] != last2reach[cid][k][v]) {
-                    L2R_temp = false;
-                    L2R_flag = (L2R_flag && L2R_temp);
-                } else {
-                    L2R_temp = true;
-                    L2R_flag = (L2R_flag && L2R_temp);
-                }
-                L2R[cid][k][v] = last2reach[cid][k][v];
+        while(!L2R_flag)
+        {
+            L2R_flag=true;
+            for (int k = 0; k < K; k++)
+            {
+                for (int v : Q) 
+                {
+                    for (size_t u : cyclic_innode[cid][v]) 
+                    {
+                        last2reach[cid][k][v] = std::max(last2reach[cid][k][v], last2reach[cid][k][u]);
+                    }
+                    if(L2R[cid][k][v]!=last2reach[cid][k][v])
+                    {
+                        L2R_temp=false;
+                        L2R_flag=(L2R_flag && L2R_temp);
+                    }
+                    else
+                    {
+                        L2R_temp=true;
+                        L2R_flag=(L2R_flag && L2R_temp);
+                    }
+                    assert(last2reach[cid][k][v]>=-1);
+                    L2R[cid][k][v]=last2reach[cid][k][v];
                 }
             }
             L2R_itr++;
         }
-        L2R_flag = false;
+        L2R_flag=false;
         //// std::cout<<"Number of L2R computation iterations for componenet "<<cid<<": "<<L2R_itr<<"\n";
-        itr1 = std::max(itr1, L2R_itr);
-        L2R_itr = 0;
+        itr1=std::max(itr1, L2R_itr);
+        L2R_itr=0;
 
         // Set all values in path to zero (for DP to be correct)
-        for (int k = 0; k < K; k++) {
-            for (auto v: path_cover[cid][k]) {
-                if (last2reach[cid][k][v] == index[cid][k][v]) {
-                Distance[cid][k][v] = (int64_t) 0;
-                Dis[cid][k][v] = (int64_t) 0;
-            }   
-        }
-
-        }
-        while (!D_flag) {
-            D_flag = true;
-            for (int k = 0; k < K; k++) {
-                for (int v: Q) {
-                if (last2reach[cid][k][v] == index[cid][k][v] && last2reach[cid][k][v] != -1)
-                    Distance[cid][k][v] = (int64_t) 0;
-                else {
-                    for (size_t u: cyclic_innode[cid][v]) {
-                    if (last2reach[cid][k][v] == last2reach[cid][k][u] && last2reach[cid][k][v] != -1) {
-                        Distance[cid][k][v] = std::min(Distance[cid][k][v], (Distance[cid][k][u]) + (int64_t) node_len[component_idx[cid][u]]);
-                        //// std::cout<<(int64_t)node_len[component_idx[cid][u]]<<" ";
-                    }
-                    }
+        for (int k = 0; k < K; k++)
+        {
+            for (auto v : path_cover[cid][k])
+            {
+                if(last2reach[cid][k][v] == index[cid][k][v])
+                {
+                    Distance[cid][k][v] = (int64_t)0;
+                    Dis[cid][k][v]= (int64_t)0;
                 }
-
-                if (Dis[cid][k][v] != Distance[cid][k][v]) {
-                    D_temp = false;
-                    D_flag = (D_flag && D_temp);
-                } else {
-                    D_temp = true;
-                    D_flag = (D_flag && D_temp);
-                }
-                Dis[cid][k][v] = Distance[cid][k][v];
+            }
+            
+        }
+        while(!D_flag)
+        {
+            D_flag=true;
+            for (int k = 0; k < K; k++)
+            {
+                for (int v : Q) 
+                {
+                    if(last2reach[cid][k][v] == index[cid][k][v] && last2reach[cid][k][v]!= -1)
+                        Distance[cid][k][v]= (int64_t)0;
+                    else
+                    {
+                        for (size_t u : cyclic_innode[cid][v]) 
+                        {
+                            if (last2reach[cid][k][v] == last2reach[cid][k][u] && last2reach[cid][k][v]!= -1)
+                            {
+                                Distance[cid][k][v] = std::min(Distance[cid][k][v], (Distance[cid][k][u])+(int64_t)node_len[component_idx[cid][u]]);
+                                //// std::cout<<(int64_t)node_len[component_idx[cid][u]]<<" ";
+                            }
+                        }
+                    }   
+                
+                    if(Dis[cid][k][v]!= Distance[cid][k][v])
+                    {
+                        D_temp=false;
+                        D_flag=(D_flag && D_temp);
+                    }
+                    else
+                    {
+                        D_temp=true;
+                        D_flag=(D_flag && D_temp);
+                    }
+                    assert(Distance[cid][k][v]>=0);
+                    Dis[cid][k][v]=Distance[cid][k][v];
                 }
             }
             //// std::cout<<D_itr<<" ";
             D_itr++;
         }
-        D_flag = false;
+        D_flag=false;
         //// std::cout<<"\nNumber of approx Distance computation iterations for componenet "<<cid<<": "<<D_itr<<"\n";
-        itr2 = std::max(itr2, D_itr);
-        D_itr = 0;
-
-        //Correct Distanec for which las2reach = -1
-        for (int k = 0; k < K; k++) {
-            for (size_t v = 0; v < N; v++) {
-                if (last2reach[cid][k][v] == -1) {
-                Distance[cid][k][v] = (int64_t) 0;
-                Dis[cid][k][v] = (int64_t) 0;
-                }
+        itr2=std::max(itr2, D_itr);
+        D_itr=0;
+        L2R[cid].clear();
+        Dis[cid].clear();
+        
+        /*std::cerr << " cid : " << cid <<"\n";
+        for(int k=0; k<K; k++)
+        {
+            for(int v: Q)
+            {
+                if(last2reach[cid][k][v]== -1)
+                    std::cout<< "Last2reach and Distance ("<<k<<","<<v<<"): " <<last2reach[cid][k][v]<<" "<<Distance[cid][k][v]<<"\n";
+                //std::cout<<last2reach[cid][k][v]<<" "<<l2r[cid][k][v]<<"\n";
+                else
+                    std::cout<< "Last2reach and Distance ("<<k<<","<<v<<"): " <<path_cover[cid][k][last2reach[cid][k][v]]<<" "<<Distance[cid][k][v]<<"\n";; 
             }
-        }
-
-
-        // // last2reach algorithm (Exact)
-        // for (auto u:Q) // Linearized order
-        // {
-        //     processed[cid][u] = true;
-        //     int w = u;
-        //     int w_old = -1;
-        //     for (size_t i = 0; i < K; i++)
-        //     {
-        //         while (w != -1 && w_old != w)
-        //         {
-        //             w_old = w;
-        //             for (auto v:cyclic_innode[cid][w])
-        //             {
-        //                 if (l2r[cid][i][v] > l2r[cid][i][u])
-        //                 {
-        //                     l2r[cid][i][u] = l2r[cid][i][v];
-        //                     w = v;
-        //                 }
-
-        //             }
-        //             if (processed[cid][w])
-        //             {
-        //                w = -1;
-        //             }
-                    
-        //         }
-        //     }
-            
-        // }
-
+        }*/
 
         // // Print last2reach 
          /*std::cerr << " last2reach " << std::endl;
@@ -1331,8 +1328,141 @@ void graphUtils::MPC_index()
             }
             std::cerr << std::endl;
         }*/
+
+        /*last2reach  verification
+        Dis[cid].clear();
+        l2r[cid].resize(path_cover[cid].size(), std::vector<int>(adj_cc[cid].size(),-1));
+        Dis[cid].resize(path_cover[cid].size(),std::vector<int64_t>(adj_cc[cid].size(),std::numeric_limits<int64_t>::max()/2)); 
+        processed[cid].resize(adj_cc[cid].size(), false);
         
+
+        for (size_t k = 0; k < K; k++)
+        {
+            for (size_t v = 0; v < N; v++)
+            {
+                if (index[cid][k][v != -1]) // v lies on the path
+                {
+                    l2r[cid][k][v]=index[cid][k][v];  // Initialize with the index
+                }
+            }
+        }
+
+        // // last2reach algorithm (Exact)
+        for (auto u:Q) // Linearized order
+        {
+             
+             processed[cid][u] = true;
+             int w = u;
+             int w_old = -1;
+             for (size_t i = 0; i < K; i++)
+             {
+                 while (w != -1 && w_old != w)
+                 {
+                     w_old = w;
+                     for (auto v:cyclic_innode[cid][w])
+                     {
+                         if (l2r[cid][i][v] > l2r[cid][i][u])
+                      {
+                             l2r[cid][i][u] = l2r[cid][i][v];
+                         w = v;
+                       }
+
+                     }
+                     if (processed[cid][w])
+                    {
+                       w = -1;
+                   }
+                    
+                }
+            }
+            
+        }
+
+        //std::cerr << "cid : " << cid <<  " last2reach is_true : " << check(last2reach[cid], l2r[cid]) << std::endl;
+
+
+        for (int k = 0; k < K; k++)
+        {
+             for (int v : Q) 
+             {
+                 //if(last2reach[cid][k][v]!= l2r[cid][k][v])
+                 //{
+                     //check1=false;
+                     //break;
+                 //}
+             //if(check1==false)
+                 //break;   
+             std::cout<<"\nlast to reach("<<k<<","<<v<<"):"<<last2reach[cid][k][v]<<" "<<l2r[cid][k][v];             
+             }
+         }
+
+        std::cout<<"\nCheck flag for lasr2reach verification for component " << cid <<" is:"<<check1<<"\n";
+        check1=true;*/
+
+        //D_approx and D_cyclic computation
+        D_approx[cid].resize(adj_cc[cid].size(), std::vector<int64_t>(adj_cc[cid].size(), std::numeric_limits<int64_t>::max()/2)); 
+        D_cyclic[cid].resize(adj_cc[cid].size(), std::numeric_limits<int64_t>::max()/2);
+
+        
+        //D_approx calculation for all pairs of vertices
+        for (size_t v = 0; v < N; v++)
+        {    
+            for (auto u: cyclic_outnode[cid][v])
+            //for (size_t u = 0; u < N; u++)
+            {
+                D_approx[cid][v][v]=0;
+                for(size_t i : path[cid][u])
+                {
+                    if(index[cid][i][v] >= index[cid][i][u])
+                    {
+                        alpha_i=v;
+                        D_approx[cid][u][v]= std::min(D_approx[cid][u][v], (dist2begin[cid][i][alpha_i]- dist2begin[cid][i][u]));
+                    }
+                    else
+                    {
+                        if(last2reach[cid][i][v]!= -1)
+                        {
+                            alpha_i= path_cover[cid][i][last2reach[cid][i][v]];
+                            D_approx_temp= dist2begin[cid][i][alpha_i]- dist2begin[cid][i][u] + Distance[cid][i][v];
+                            if(D_approx_temp>= 0)
+                                D_approx[cid][u][v]= std::min(D_approx[cid][u][v], D_approx_temp);
+                        }
+                    }
+                } 
+                assert(D_approx[cid][u][v]>=0);     
+                //std::cout<<"D_apx("<<u<<v<<"): "<<D_approx[cid][u][v]<<"\n";
+            }  
+        }
+
+	    //std::cerr << "\ncid : " << cid << " D_cyclic : "; 
+
+        //D_cyclic calculation   
+        for (size_t v = 0; v < N; v++)
+        {
+            for(size_t u: cyclic_outnode[cid][v])
+            {
+                D_cyclic[cid][v]= std::min(D_cyclic[cid][v], D_approx[cid][u][v]+ (int64_t)node_len[component_idx[cid][v]]);
+            }
+            assert(D_cyclic[cid][v]>=0);
+            //std::cout<<"\nD'_apx("<<v<<"): "<<D_cyclic[cid][v]<<"\n";
+        } 
+	    //Correct Distanec for which las2reach = -1
+        for (int k = 0; k < K; k++)
+        {
+            for (size_t v = 0; v < N; v++)
+            {
+                if (last2reach[cid][k][v] == -1)
+                {
+                    Distance[cid][k][v] = (int64_t)0;
+                    //Dis[cid][k][v]= (int64_t)0;
+                }
+            }
+        }
     }
+    std::cout<< "\nNumber of L2R computation iterations for the graph: "<<itr1<<"\n";
+    std::cout<<"Number of approx Distance computation iterations for the graph: "<<itr2<<"\n\n";
+    //std::cout<<"\n";
+    
 }
 
 bool compare_T(const Tuples &a, const Tuples &b){
