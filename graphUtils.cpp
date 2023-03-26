@@ -1548,7 +1548,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     t.w = v;
                     t.top_v = map_top_sort[cid][v];
                     T.push_back(t);
-                }else if (last2reach[cid][k][v] != -1) // v is not on the path "k" and if last2reach exist
+                }
+                else if (last2reach[cid][k][v] != -1 && last2reach[cid][k][v] != index[cid][k][v]) // v is not on the path "k" and if last2reach exist
                 {
                     int w = last2reach[cid][k][v]; // vertex -> Index
                     w = rev_index[cid][k][w]; // index -> vertex
@@ -1565,6 +1566,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     t.top_v = map_top_sort[cid][w];
                     T.push_back(t);
                 }   
+                //else if()
+                //{}
             }
             /* Initialise C */
             C[j] = {cost , -1};
