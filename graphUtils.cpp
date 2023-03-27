@@ -1462,8 +1462,8 @@ void graphUtils::MPC_index()
         }
         D_approx[cid].clear();
     }
-    std::cout<< "\nNumber of L2R computation iterations for the graph: "<<itr1<<"\n";
-    std::cout<<"Number of approx Distance computation iterations for the graph: "<<itr2<<"\n\n";
+    //std::cout<< "\nNumber of L2R computation iterations for the graph: "<<itr1<<"\n";
+    //std::cout<<"Number of approx Distance computation iterations for the graph: "<<itr2<<"\n\n";
     //std::cout<<"\n";
     
 }
@@ -1490,6 +1490,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     std::vector<std::vector<mg128_t>> idx_Anchor;
     idx_Anchor.resize(num_cid);
     bool C_flag= false, temp_flag;
+    int ITR=0, max_ITR=0;
     for (int j = 0; j < anchors.size(); j++)
     {
         Anchors M_; // Anchor
@@ -1551,7 +1552,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     t.top_v = map_top_sort[cid][v];
                     T.push_back(t);
                 }
-                else if (last2reach[cid][k][v] != -1 && last2reach[cid][k][v] != index[cid][k][v]) // v is not on the path "k" and if last2reach exist
+                if (last2reach[cid][k][v] != -1 && last2reach[cid][k][v] != index[cid][k][v]) // v is not on the path "k" and if last2reach exist
                 {
                     int w = last2reach[cid][k][v]; // vertex -> Index
                     w = rev_index[cid][k][w]; // index -> vertex
@@ -1568,7 +1569,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     t.top_v = map_top_sort[cid][w];
                     T.push_back(t);
                 }   
-                else if(index[cid][k][v] != -1 && D_cyclic[cid][v]>=0)
+                if(index[cid][k][v] != -1 && D_cyclic[cid][v] != std::numeric_limits<int64_t>::max()/2)
                 {
                     Tuples t;
                     // for task 2
@@ -1577,8 +1578,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     t.pos = std::numeric_limits<int>::max(); // Sigma[w] + 2
                     t.task = 2;
                     t.d = M[cid][j].d;
-                    t.v = v; // sorting purpose
-                    t.w = v; // vertex in which the anchor lies.
+                    t.v = v; 
+                    t.w = v; 
                     t.top_v = map_top_sort[cid][v];
                     T.push_back(t);
                 }
@@ -1594,7 +1595,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
 
         // Chaining
         while(!C_flag)
-        {
+        {   
+            C_flag=true;
             for (auto t:T) // in Linearized Order of their nodes
             {
                 if(t.task == 0)
@@ -1624,11 +1626,12 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 {
                     int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + D_cyclic[cid][t.w]);
                     int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
-                    int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
+                    //int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
                     std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
                     if (rmq.first > std::numeric_limits<int64_t>::min())
                     {
                         C[t.anchor] = std::max(C[t.anchor], { rmq.first - val_1 + val_2, rmq.second });
+                        int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
                         I[t.path].add(M[cid][t.anchor].d, {C[t.anchor].first + val_3 , t.anchor});
                     }
                     if (param_z)
@@ -1643,14 +1646,21 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 }
                 else
                 {
-                    temp_flag=false;
+                    temp_flag= true;
                     C_flag=(C_flag && temp_flag);
                 }
                 C_temp[t.anchor]=C[t.anchor];
             }
             //reinitializing RMQ tree
-
+            I.clear();
+            I.resize(K,IndexT(defaul_value));
+            ITR++;
         }
+        C_flag=false;
+        max_ITR= std::max(ITR, max_ITR);
+        //std::cout<<"Cid: "<<cid<<" Iterations for chaining "<<ITR<<"\n";
+        ITR=0;
+        //exit(0);
 
         if (N!=0)
         {
@@ -1730,8 +1740,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             best_chains[cid] = chain_pair;
             temp_.clear();
         }
-
-   }
+    }
+    std::cout<<"[Number of iterations for chaining: "<<max_ITR<<"]\n\n";
 
     // Pick the chain with maximum score as best
     std::pair<int64_t, int> best_;
