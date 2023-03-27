@@ -1,6 +1,7 @@
 #include "graphUtils.h"
 //typedef std::pair<int, int> pairs;
 std::vector<std::vector<std::vector<int>>> cyclic_innode, cyclic_outnode;
+std::vector<std::vector<int64_t>> D_cyclic;
 
 //Cyclic to DAG conversion
 //Function to get the vertex order for SCC computation Using DFS
@@ -563,10 +564,10 @@ void graphUtils::Connected_components()
             for (auto const &k : adj_cc[cid][j])
             {
                 //// std::cout<<"->"<<adj_[j][k];
+                cyclic_outnode[cid][j].push_back(k);
                 if(k!= j)
                     {
                         cyclic_innode[cid][k].push_back(j);
-                        cyclic_outnode[cid][j].push_back(k);
                     }
                 comp_adj[j].push_back(k);
                 adj_edge++;
@@ -1089,12 +1090,11 @@ void graphUtils::MPC_index()
     std::vector<std::vector<std::vector<int>>> L2R, path;
     std::vector<std::vector<std::vector<int64_t>>> Dis;
     std::vector<std::vector<std::vector<int64_t>>> D_approx;
-    std::vector<std::vector<int64_t>> D_cyclic;
-    std::vector<std::vector<bool>> processed;
+    //std::vector<std::vector<bool>> processed;
     //std::vector<std::vector<bool>> loc_processed;
     D_approx.resize(num_cid);
     D_cyclic.resize(num_cid);
-    processed.resize(num_cid);
+    //processed.resize(num_cid);
     //loc_processed.resize(num_cid);
     path.resize(num_cid);
     L2R.resize(num_cid);
@@ -1410,25 +1410,29 @@ void graphUtils::MPC_index()
             for (auto u: cyclic_outnode[cid][v])
             //for (size_t u = 0; u < N; u++)
             {
-                D_approx[cid][v][v]=0;
-                for(size_t i : path[cid][u])
+                if(v==u)
+                    D_approx[cid][u][v]=0;
+                else
                 {
-                    if(index[cid][i][v] >= index[cid][i][u])
+                    for(size_t i : path[cid][u])
                     {
-                        alpha_i=v;
-                        D_approx[cid][u][v]= std::min(D_approx[cid][u][v], (dist2begin[cid][i][alpha_i]- dist2begin[cid][i][u]));
-                    }
-                    else
-                    {
-                        if(last2reach[cid][i][v]!= -1)
+                        if(index[cid][i][v] >= index[cid][i][u])
                         {
-                            alpha_i= path_cover[cid][i][last2reach[cid][i][v]];
-                            D_approx_temp= dist2begin[cid][i][alpha_i]- dist2begin[cid][i][u] + Distance[cid][i][v];
-                            if(D_approx_temp>= 0)
-                                D_approx[cid][u][v]= std::min(D_approx[cid][u][v], D_approx_temp);
+                            alpha_i=v;
+                            D_approx[cid][u][v]= std::min(D_approx[cid][u][v], (dist2begin[cid][i][alpha_i]- dist2begin[cid][i][u]));
                         }
-                    }
-                } 
+                        else
+                        {
+                            if(last2reach[cid][i][v]!= -1)
+                            {
+                                alpha_i= path_cover[cid][i][last2reach[cid][i][v]];
+                                D_approx_temp= dist2begin[cid][i][alpha_i]- dist2begin[cid][i][u] + Distance[cid][i][v];
+                                if(D_approx_temp>= 0)
+                                    D_approx[cid][u][v]= std::min(D_approx[cid][u][v], D_approx_temp);
+                            }
+                        }
+                    } 
+                }
                 assert(D_approx[cid][u][v]>=0);     
                 //std::cout<<"D_apx("<<u<<v<<"): "<<D_approx[cid][u][v]<<"\n";
             }  
@@ -1558,7 +1562,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     // for task 0
                     t.anchor = j;
                     t.path = k;
-                    t.pos = std::numeric_limits<int>::max(); // Sigma[w] + 1
+                    t.pos = std::numeric_limits<int>::max()/2; // Sigma[w] + 1
                     t.task = 0;
                     t.d = M[cid][j].d;
                     t.v = w;
@@ -1566,10 +1570,22 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     t.top_v = map_top_sort[cid][w];
                     T.push_back(t);
                 }   
-                //else if()
-                //{}
+                else if(index[cid][k][v] != -1 && D_cyclic[cid][v]>=0)
+                {
+                    Tuples t;
+                    // for task 2
+                    t.anchor = j;
+                    t.path = k;
+                    t.pos = std::numeric_limits<int>::max(); // Sigma[w] + 2
+                    t.task = 2;
+                    t.d = M[cid][j].d;
+                    t.v = v; // sorting purpose
+                    t.w = v; // vertex in which the anchor lies.
+                    t.top_v = map_top_sort[cid][v];
+                    T.push_back(t);
+                }
             }
-            /* Initialise C */
+            /* Initialise C */ 
             C[j] = {cost , -1};
             C_temp[j]= {cost , -1}; 
         }
@@ -1581,7 +1597,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         // Chaining
         while(!C_flag)
         {
-            for (auto t:T) // in Topological Order of their nodes
+            for (auto t:T) // in Linearized Order of their nodes
             {
                 if(t.task == 0)
                 {
@@ -1597,13 +1613,29 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                         std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
                     }
                 }
-                else
+                else if(t.task == 1)
                 {
                     int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
                     I[t.path].add(M[cid][t.anchor].d, {C[t.anchor].first + val_3 , t.anchor});
                     if (param_z)
                     {
                         std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path << " val_3 : " << val_3  << " M.y : " << M[cid][t.anchor].y <<  " dist2begin : "  << dist2begin[cid][t.path][t.v] << " M[i].d : " << t.d << "\n"; 
+                    }
+                }
+                else
+                {
+                    int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + D_cyclic[cid][t.w]);
+                    int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
+                    int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
+                    std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
+                    if (rmq.first > std::numeric_limits<int64_t>::min())
+                    {
+                        C[t.anchor] = std::max(C[t.anchor], { rmq.first - val_1 + val_2, rmq.second });
+                        I[t.path].add(M[cid][t.anchor].d, {C[t.anchor].first + val_3 , t.anchor});
+                    }
+                    if (param_z)
+                    {
+                        std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
                     }
                 }
                 if(C[t.anchor]!=C_temp[t.anchor])
