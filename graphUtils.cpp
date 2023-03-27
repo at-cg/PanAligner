@@ -1057,7 +1057,7 @@ void graphUtils::MPC()
     }*/
 }
 
-template<typename V>
+/*template<typename V>
 bool check(std::vector<std::vector<V>> DS_1, std::vector<std::vector<V>> DS_2){
 
     assert(DS_1.size() == DS_2.size());
@@ -1081,7 +1081,7 @@ bool check(std::vector<std::vector<V>> DS_1, std::vector<std::vector<V>> DS_2){
     
 
     return is_same;
-}
+}*/
 
 void graphUtils::MPC_index()
 {   
@@ -1091,11 +1091,9 @@ void graphUtils::MPC_index()
     std::vector<std::vector<std::vector<int64_t>>> Dis;
     std::vector<std::vector<std::vector<int64_t>>> D_approx;
     //std::vector<std::vector<bool>> processed;
-    //std::vector<std::vector<bool>> loc_processed;
     D_approx.resize(num_cid);
     D_cyclic.resize(num_cid);
     //processed.resize(num_cid);
-    //loc_processed.resize(num_cid);
     path.resize(num_cid);
     L2R.resize(num_cid);
     //l2r.resize(num_cid);
@@ -1116,16 +1114,16 @@ void graphUtils::MPC_index()
         */
         int K = path_cover[cid].size();
         int N = adj_cc[cid].size();
-       // std::cout<<"DAG component"<<cid<<"\n";
+        /*std::cout<<"DAG component"<<cid<<"\n";
         for (size_t j = 0; j < adj_cc[cid].size(); j++)
         {   
-            // std::cout<<j;
+            std::cout<<j;
             for (auto const &k : adj_cc[cid][j])
             {
-               // std::cout<<"->"<<k;
+               std::cout<<"->"<<k;
             }
-           // std::cout<<"\n";
-        }
+            std::cout<<"\n";
+        }*/
 
         // Compute index ( arranged in topological order by MPC , no need to sort)
         index[cid].resize(path_cover[cid].size(),std::vector<int>(adj_cc[cid].size(),-1));
@@ -1416,7 +1414,7 @@ void graphUtils::MPC_index()
                 {
                     for(size_t i : path[cid][u])
                     {
-                        if(index[cid][i][v] >= index[cid][i][u])
+                        if(index[cid][i][v] >= index[cid][i][u] && index[cid][i][v]!= -1 && index[cid][i][u]!=-1)
                         {
                             alpha_i=v;
                             D_approx[cid][u][v]= std::min(D_approx[cid][u][v], (dist2begin[cid][i][alpha_i]- dist2begin[cid][i][u]));
