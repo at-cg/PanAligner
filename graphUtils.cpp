@@ -2,6 +2,7 @@
 //typedef std::pair<int, int> pairs;
 std::vector<std::vector<std::vector<int>>> cyclic_innode, cyclic_outnode;
 std::vector<std::vector<int64_t>> D_cyclic;
+int edges_rm=0;
 
 //Cyclic to DAG conversion
 //Function to get the vertex order for SCC computation Using DFS
@@ -601,9 +602,9 @@ void graphUtils::Connected_components()
     // std::cerr<<"\nTotal number of edges in DAG "<<dag_edge<<"\n";
     // std::cerr<<"Total number of nodes in DAG "<<dag_vertex<<"\n\n";
     // std::cerr<<"Number of edges removed :"<<adj_edge-dag_edge<<"\n\n";
+    edges_rm=adj_edge-dag_edge;
     std::cerr<< "Number of nodes and edges in DAG : " <<dag_vertex<<" "<<dag_edge<<std::endl;
-    std::cerr<< "Number of edges removed : " << adj_edge-dag_edge <<std::endl;
-   
+    std::cerr<< "Number of edges removed : " <<edges_rm <<std::endl;
 
 }
 
@@ -1403,6 +1404,7 @@ void graphUtils::MPC_index()
 
         
         //D_approx calculation for all pairs of vertices
+        if(edges_rm > 0){
         for (size_t v = 0; v < N; v++)
         {    
             for (auto u: cyclic_outnode[cid][v])
@@ -1448,15 +1450,16 @@ void graphUtils::MPC_index()
             assert(D_cyclic[cid][v]>=0);
             //std::cerr<<"\nD'_apx("<<v<<"): "<<D_cyclic[cid][v]<<"\n";
         } 
+        }
 	    //Correct Distanec for which las2reach = -1
         for (int k = 0; k < K; k++)
         {
             for (size_t v = 0; v < N; v++)
             {
+                //std::cerr<<"\nD'_apx("<<v<<"): "<<D_cyclic[cid][v]<<"\n";
                 if (last2reach[cid][k][v] == -1)
                 {
                     Distance[cid][k][v] = (int64_t)0;
-                    //Dis[cid][k][v]= (int64_t)0;
                 }
             }
         }
