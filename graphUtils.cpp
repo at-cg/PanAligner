@@ -546,7 +546,7 @@ void graphUtils::Connected_components()
     //// std::cerr<<"No. of vertices in each component are:"<<std::endl;
     for (size_t cid = 0; cid < num_cid; cid++)
     {   
-       /*std::cerr<<"Cyclic component"<<cid;
+        /*std::cerr<<"Cyclic component"<<cid;
         for (size_t j = 0; j < adj_cc[cid].size(); j++)
         {   
            std::cerr<<j;
@@ -578,21 +578,21 @@ void graphUtils::Connected_components()
         SCC(comp_adj, comp_size);
         adj_cc[cid].clear();
         adj_cc[cid].resize(comp_size);
-        //// std::cerr<<"DAG Component"<<cid<<"\n";
+        //std::cerr<<"DAG Component"<<cid<<"\n";
         
         for (size_t j = 0; j < comp_adj.size(); j++)
         {   
-            //// std::cerr<<j;
+            //std::cerr<<j;
             for (auto const &k : comp_adj[j])
             {
                 adj_cc[cid][j].push_back(k);
-                //// std::cerr<<"->"<<k;
+                //std::cerr<<"->"<<k;
                 dag_edge++;
                 
                 
             }
             dag_vertex++;
-            //// std::cerr<<"\n";
+            //std::cerr<<"\n";
         }
         //// std::cerr<<"Total number of edges in Acyclic Component "<<cid<<" :"<<"-> [";
         //// std::cerr<<comp_count<<"] \n";
@@ -1152,7 +1152,7 @@ void graphUtils::MPC_index()
         Dis[cid].resize(path_cover[cid].size(),std::vector<int64_t>(adj_cc[cid].size(),std::numeric_limits<int64_t>::max()/2)); 
         path[cid].resize(N);
         //// std::cerr<<std::numeric_limits<int64_t>::max()/2<<"\n";
-        //std::cerr<<"Path covers for component"<<cid<<"\n";
+        //std::cerr<<"\nPath covers for component"<<cid<<"\n";
         for (int k = 0; k < K; k++)
         {   
             //std::cerr<<"\nk="<<k<<":";
@@ -1184,6 +1184,11 @@ void graphUtils::MPC_index()
                 Q.push_back(t);
             }
         }
+        /*std::cerr<<"\n Topological order, component "<<cid<<": ";
+        for(int v : Q)
+        {
+            std::cerr<<v<<" ";
+        }*/
 
         // last2reach computation
         while(!L2R_flag)
@@ -1290,7 +1295,7 @@ void graphUtils::MPC_index()
         }*/
 
         // // Print last2reach 
-         /*std::cerr << " last2reach " << std::endl;
+        /*std::cerr << " last2reach " << std::endl;
          for (size_t i = 0; i < K; i++)
         {
              for (size_t j = 0; j < N; j++)
@@ -1464,10 +1469,13 @@ void graphUtils::MPC_index()
             }
         }
         D_approx[cid].clear();
+        path[cid].clear();
+        cyclic_innode[cid].clear();
+        cyclic_outnode[cid].clear();
     }
     //std::cerr<< "\nNumber of L2R computation iterations for the graph: "<<itr1<<"\n";
     //std::cerr<<"Number of approx Distance computation iterations for the graph: "<<itr2<<"\n\n";
-    //std::cerr<<"\n";
+    std::cerr<<"\n";
     
 }
 
@@ -1479,8 +1487,10 @@ bool compare_dups(const Tuples &a, const Tuples &b){
     return std::tie( a.top_v , a.pos, a.task, a.d, a.path) == std::tie( b.top_v , b.pos, b.task, b.d, b.path);
 };
 
+
 std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
-{
+{   std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
     if (param_z)
     {
         std::cerr << " Number of Anchors : " << anchors.size() << "\n";
@@ -1572,7 +1582,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                     t.top_v = map_top_sort[cid][w];
                     T.push_back(t);
                 }   
-                if(index[cid][k][v] != -1 && D_cyclic[cid][v] != std::numeric_limits<int64_t>::max()/2)
+                if(index[cid][k][v] != -1 && D_cyclic[cid][v] > 0 && D_cyclic[cid][v] < std::numeric_limits<int64_t>::max()/2)
                 {
                     Tuples t;
                     // for task 2
@@ -1598,22 +1608,41 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
 
         // Chaining
         while(!C_flag)
-        {   
+        {    
             C_flag=true;
+            //std::cerr<<"Total number of tuples"<<T.size()<<"\n";
             for (auto t:T) // in Linearized Order of their nodes
             {
+                //std::cerr<<"t.rank: "<<t.top_v<<" t.v: "<<t.v<<" t.w: "<<t.w<<" t.anchor:"<<t.anchor<<" t.path: "<<t.path<<" t.pos:"<<t.pos<<" t.task: "<<t.task<<"\n";
                 if(t.task == 0)
                 {
-                    int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
-                    int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
-                    std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
-                    if (rmq.first > std::numeric_limits<int64_t>::min())
+                    if(t.w==t.v)
                     {
-                        C[t.anchor] = std::max(C[t.anchor], { rmq.first - val_1 + val_2, rmq.second });
+                         int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v]);
+                        int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
+                        std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
+                        if (rmq.first > std::numeric_limits<int64_t>::min())
+                        {
+                            C[t.anchor] = std::max(C[t.anchor], { rmq.first - val_1 + val_2, rmq.second });
+                        }
+                        if (param_z)
+                        {
+                            std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace : " <<  0 <<  " M[i].d : " << t.d << "\n"; 
+                        }
                     }
-                    if (param_z)
+                    else
                     {
-                        std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
+                        int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + Distance[cid][t.path][t.w]);
+                        int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
+                        std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
+                        if (rmq.first > std::numeric_limits<int64_t>::min())
+                        {
+                            C[t.anchor] = std::max(C[t.anchor], { rmq.first - val_1 + val_2, rmq.second });
+                        }
+                        if (param_z)
+                        {
+                            std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
+                        }
                     }
                 }
                 else if(t.task == 1)
@@ -1629,17 +1658,17 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 {
                     int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v] + D_cyclic[cid][t.w]);
                     int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
-                    //int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
+                    int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
                     std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
                     if (rmq.first > std::numeric_limits<int64_t>::min())
                     {
                         C[t.anchor] = std::max(C[t.anchor], { rmq.first - val_1 + val_2, rmq.second });
-                        int64_t val_3 = ( M[cid][t.anchor].d + M[cid][t.anchor].y + dist2begin[cid][t.path][t.v]);
                         I[t.path].add(M[cid][t.anchor].d, {C[t.anchor].first + val_3 , t.anchor});
                     }
                     if (param_z)
                     {
-                        std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace : " <<  Distance[cid][t.path][t.w] <<  " M[i].d : " << t.d << "\n"; 
+                        std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path <<  " parent : " << C[t.anchor].second  <<  " node : " << M[cid][t.anchor].v << " index : " << index[cid][t.path][t.w] << " C[j] : " << C[t.anchor].first << " update_C : " << (rmq.first - val_1 + val_2) << " rmq.first : " << rmq.first  << " val_1 : " << val_1 << " dist2begin : " << dist2begin[cid][t.path][t.v] << " Distnace(cyclic) : " << D_cyclic[cid][t.w]  <<  " M[i].d : " << t.d << "\n"; 
+                        std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path << " val_3 : " << val_3  << " M.y : " << M[cid][t.anchor].y <<  " dist2begin : "  << dist2begin[cid][t.path][t.v] << " M[i].d : " << t.d << "\n"; 
                     }
                 }
                 if(C[t.anchor]!=C_temp[t.anchor])
@@ -1663,6 +1692,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         max_ITR= std::max(ITR, max_ITR);
         //std::cerr<<"Cid: "<<cid<<" Iterations for chaining "<<ITR<<"\n";
         ITR=0;
+        
         //exit(0);
 
         if (N!=0)
@@ -1743,9 +1773,11 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             best_chains[cid] = chain_pair;
             temp_.clear();
         }
+        
     }
-    std::cerr<<"[Number of iterations for chaining: "<<max_ITR<<"]\n\n";
-
+    //std::cerr<<"[Number of iterations for chaining: "<<max_ITR<<"]\n\n";
+    
+    //exit(0);
     // Pick the chain with maximum score as best
     std::pair<int64_t, int> best_;
     int64_t best_chain_score = 0;
@@ -1822,6 +1854,10 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             }
         }
     }
+    if (param_z)
+    {
+        std::cerr << " Number of Best Anchors : " << best.size() << "\n";
+    }
 
     /* Remove anchors from collected indices */ 
     int count_idx = 0;
@@ -1832,10 +1868,13 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         count_idx++;
     }
 
-    if (param_z)
+    /*if (param_z)
     {
         std::cerr << " Number of Best Anchors : " << best.size() << "\n";
-    }
+    }*/
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    //std::cerr <<"Read "<<", elapsed time: " << elapsed_seconds.count() << "s\n";
 
    return best;
 
