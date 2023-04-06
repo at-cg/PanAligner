@@ -377,41 +377,12 @@ void graphUtils::read_graph()
         }
     }
 
- 
-    //std::vector<std::vector<int>> adj(n_vtx);
-
-    //int diff;
-    //// std::cerr<<"Print the graph"<<std::endl;
-    std::cerr<< "Number of nodes and edges in Cyclic graph : " <<n_vtx<<" "<<num_edges<<std::endl;
-    // std::cerr<<"\nEdges in cyclic graph: "<<num_edges;
-    // std::cerr<<"\nNumber of nodes in cyclic graph: "<<n_vtx<<std::endl;
-
-    /*SCC(adj, n_vtx);
-    for (size_t i = 0; i < n_vtx; i++)
+    if(param_z)
     {
-        adj_[i].clear();
-        //std::cerr << i;
-        for (int &x : adj[i])
-        {
-            adj_[i].push_back(x);
-            //std::cerr <<"->" << x;
-            dag_edge++;
-        }
-        //std::cerr << std::endl;
+        std::cerr<< "Number of nodes and edges in Cyclic graph : " <<n_vtx<<" "<<num_edges<<std::endl;
+        // std::cerr<<"\nEdges in cyclic graph: "<<num_edges;
+        // std::cerr<<"\nNumber of nodes in cyclic graph: "<<n_vtx<<std::endl;
     }
-
-    /*for (size_t i = 0; i < n_vtx; i++)
-    {
-        std::cerr << i;
-        for (int &x : adj[i])
-        {
-            std::cerr <<"->" << x;
-        }
-        std::cerr << std::endl;
-    }
-    // std::cerr<<"Edges in DAG: "<<dag_edge<<"\n";
-    // std::cerr<<"No. of edges removed: "<<adj_edge-dag_edge<<"\n\n";
-    */
 }
 
 void graphUtils::print_graph()
@@ -478,7 +449,7 @@ void graphUtils::Connected_components()
         std::vector<std::vector<int>> un_adj;
         un_adj.resize(n_vtx); // u -> v
         for (int u = 0; u < n_vtx; u++)
-        {
+        { //std::vector<std::vector<int>> adj(n_vtx);
             for (auto v:adj_[u])
             {
                 un_adj[u].push_back(v);
@@ -603,9 +574,11 @@ void graphUtils::Connected_components()
     // std::cerr<<"Total number of nodes in DAG "<<dag_vertex<<"\n\n";
     // std::cerr<<"Number of edges removed :"<<adj_edge-dag_edge<<"\n\n";
     edges_rm=adj_edge-dag_edge;
-    std::cerr<< "Number of nodes and edges in DAG : " <<dag_vertex<<" "<<dag_edge<<std::endl;
-    std::cerr<< "Number of edges removed : " <<edges_rm <<std::endl;
-
+    if(param_z)
+    {
+        std::cerr<< "Number of nodes and edges in DAG : " <<dag_vertex<<" "<<dag_edge<<std::endl;
+        std::cerr<< "Number of edges removed : " <<edges_rm <<std::endl;
+    }
 }
 
 
@@ -678,7 +651,7 @@ int graphUtils::is_cyclic() // Check cyclicity of component and convert to acycl
     q.clear();
     in_degree.clear();
     out_degree.clear();
-    std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]\n"<< std::endl;
+    //std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]\n"<< std::endl;
     return cycle_count;
 }
 
@@ -1004,7 +977,7 @@ void graphUtils::MPC()
                 }
                 
             }
-            std::reverse(path.begin(),path.end());
+            std::reverse(path.begin(),path.end()); //std::vector<std::vector<int>> adj(n_vtx);
             path_cover[cid].push_back(path);
             //std::cerr << "cid = " << cid << " path #" << path_cover[cid].size() << " : " << path.size() << " " << new_covered << " " << (V - covered_count) << std::endl;
             path.clear();
@@ -1202,6 +1175,7 @@ void graphUtils::MPC_index()
                     {
                         last2reach[cid][k][v] = std::max(last2reach[cid][k][v], last2reach[cid][k][u]);
                     }
+                    //Checking L2R values convergence
                     if(L2R[cid][k][v]!=last2reach[cid][k][v])
                     {
                         L2R_temp=false;
@@ -1256,7 +1230,7 @@ void graphUtils::MPC_index()
                             }
                         }
                     }   
-                
+                    //Checking Dis values convergence
                     if(Dis[cid][k][v]!= Distance[cid][k][v])
                     {
                         D_temp=false;
@@ -1473,9 +1447,11 @@ void graphUtils::MPC_index()
         cyclic_innode[cid].clear();
         cyclic_outnode[cid].clear();
     }
-    //std::cerr<< "\nNumber of L2R computation iterations for the graph: "<<itr1<<"\n";
-    //std::cerr<<"Number of approx Distance computation iterations for the graph: "<<itr2<<"\n\n";
-    std::cerr<<"\n";
+    if(param_z)
+    {
+        std::cerr<< "[Number of iterations for L2R computation: "<<itr1<<"]\n";
+        std::cerr<<"[Number of iterations for Distance computation: "<<itr2<<"]\n";
+    }
     
 }
 
@@ -1618,7 +1594,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                 {
                     if(t.w==t.v)
                     {
-                         int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v]);
+                        int64_t val_1 = ( M[cid][t.anchor].c - 1 + M[cid][t.anchor].x - 1 + dist2begin[cid][t.path][t.v]);
                         int64_t val_2 = sf*(M[cid][t.anchor].d - M[cid][t.anchor].c + 1);
                         std::pair<int64_t,int> rmq = I[t.path].RMQ(0,M[cid][t.anchor].c - 1);
                         if (rmq.first > std::numeric_limits<int64_t>::min())
@@ -1671,6 +1647,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                         std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path << " val_3 : " << val_3  << " M.y : " << M[cid][t.anchor].y <<  " dist2begin : "  << dist2begin[cid][t.path][t.v] << " M[i].d : " << t.d << "\n"; 
                     }
                 }
+                //Checking C[j] scores convergence 
                 if(C[t.anchor]!=C_temp[t.anchor])
                 {
                     temp_flag=false;
@@ -1692,9 +1669,6 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         max_ITR= std::max(ITR, max_ITR);
         //std::cerr<<"Cid: "<<cid<<" Iterations for chaining "<<ITR<<"\n";
         ITR=0;
-        
-        //exit(0);
-
         if (N!=0)
         {
             // Traceback
@@ -1773,11 +1747,12 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             best_chains[cid] = chain_pair;
             temp_.clear();
         }
-        
     }
-    //std::cerr<<"[Number of iterations for chaining: "<<max_ITR<<"]\n\n";
-    
-    //exit(0);
+
+    if(param_z)
+    {
+        std::cerr<<"[Number of iterations for chaining: "<<max_ITR<<"]\n\n";
+    }
     // Pick the chain with maximum score as best
     std::pair<int64_t, int> best_;
     int64_t best_chain_score = 0;
