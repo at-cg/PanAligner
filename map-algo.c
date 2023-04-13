@@ -8,13 +8,6 @@
 #include "graphUtils.h"
 #include <iostream>
 
-graphUtils *graphOp;
-
-void get_Op(graphUtils *graph_Op)
-{
-	graphOp = graph_Op;
-}
-
 struct mg_tbuf_s {
 	void *km;
 	int frag_gap;
@@ -26,6 +19,18 @@ mg_tbuf_t *mg_tbuf_init(void)
 	b = (mg_tbuf_t*)calloc(1, sizeof(mg_tbuf_t));
 	if (!(mg_dbg_flag & MG_DBG_NO_KALLOC)) b->km = km_init();
 	return b;
+}
+
+graphUtils *graphOp;
+void get_Op(graphUtils *graph_Op)
+{
+	graphOp = graph_Op;
+}
+
+void get_vars(int &max, int &max_sum, int &count){
+	max = graphOp->max;
+	max_sum = graphOp->max_sum;
+	count = graphOp->count;
 }
 
 void mg_tbuf_destroy(mg_tbuf_t *b)

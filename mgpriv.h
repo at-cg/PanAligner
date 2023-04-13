@@ -128,6 +128,8 @@ struct params
 	bool param_z;
 };
 
+void get_vars(int &max, int &max_sum, int &count);
+
 
 #ifdef __cplusplus
 }

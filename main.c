@@ -5,9 +5,9 @@
 #include "gfa-priv.h"
 #include "sys.h"
 #include "ketopt.h"
-#include "graphUtils.h"
 #include <chrono> 
 #include <stdbool.h>
+#include "graphUtils.h"
 
 #ifdef __linux__
 #include <sys/resource.h>
@@ -109,6 +109,8 @@ int main(int argc, char *argv[])
 	char *s;
 	FILE *fp_help = stderr;
 	gfa_t *g;
+
+	// Added variables to be printed
 
 	mg_verbose = 3;
 	liftrlimit();
@@ -277,7 +279,7 @@ int main(int argc, char *argv[])
 
 	// Pass parameters to index.c
 	// std::cerr << " Param_z : " << z << " Scale_factor : " << scale_factor << std::endl;
-	pass_par(z,scale_factor);
+	pass_par(z, scale_factor);
 
 	g = gfa_read(argv[o.ind]);
 	if (g == 0) {
@@ -303,7 +305,12 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	int max, max_sum, count;
+	get_vars(max, max_sum, count);
+	int mean = max_sum / count;
+
 	if (mg_verbose >= 3) {
+		fprintf(stderr, "[M::%s] Chaining Iterations [Max: %d, Mean: %d]\n", __func__, max, mean);
 		fprintf(stderr, "[M::%s] Version: %s\n", __func__, MG_VERSION);
 		fprintf(stderr, "[M::%s] CMD:", __func__);
 		for (i = 0; i < argc; ++i)

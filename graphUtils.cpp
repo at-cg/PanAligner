@@ -1401,8 +1401,10 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     }
     std::vector<std::pair<std::vector<mg128_t>,int64_t>> best_chains;
     best_chains.resize(num_cid);
+    temp_max = -1;
     for (int cid = 0; cid < num_cid; cid++)
     {
+        int cid_max = 0;
         // N : #Anchors 
         // K : #Paths
         int N = M[cid].size();
@@ -1491,6 +1493,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         // Chaining
         while(!C_flag)
         {    
+            cid_max++;
             C_flag=true;
             //std::cerr<<"Total number of tuples"<<T.size()<<"\n";
             for (auto t:T) // in Linearized Order of their nodes
@@ -1575,6 +1578,8 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
         max_ITR= std::max(ITR, max_ITR);
         min_ITR= std::min(ITR, min_ITR);
         ITR_sum= ITR+ITR_sum;
+
+        temp_max = std::max(temp_max, cid_max);
         //std::cerr<<"Cid: "<<cid<<" Iterations for chaining "<<ITR<<"\n";
         ITR=0;
         if (N!=0)
@@ -1656,6 +1661,11 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
             temp_.clear();
         }
     }
+
+    // Sum the iterations
+    max_sum += temp_max;
+    max = std::max(max, temp_max);
+    count++;
 
     int mean_ITR= ITR_sum/num_cid;
     if(param_z)
