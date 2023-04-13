@@ -1401,7 +1401,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     }
     std::vector<std::pair<std::vector<mg128_t>,int64_t>> best_chains;
     best_chains.resize(num_cid);
-    temp_max = -1;
+    temp_max = 0;
     for (int cid = 0; cid < num_cid; cid++)
     {
         int cid_max = 0;
@@ -1666,6 +1666,7 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
     max_sum += temp_max;
     max = std::max(max, temp_max);
     count++;
+    // std::cerr << " max_sum : " << max_sum << " max : " << max << " temp_max : " <<temp_max << " count : " << count << std::endl; 
 
     int mean_ITR= ITR_sum/num_cid;
     if(param_z)

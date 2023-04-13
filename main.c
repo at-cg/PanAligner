@@ -307,10 +307,10 @@ int main(int argc, char *argv[])
 
 	int max, max_sum, count;
 	get_vars(max, max_sum, count);
-	int mean = max_sum / count;
+	float mean = (float)max_sum / (float)count;
 
 	if (mg_verbose >= 3) {
-		fprintf(stderr, "[M::%s] Chaining Iterations [Max: %d, Mean: %d]\n", __func__, max, mean);
+		fprintf(stderr, "[M::%s] Chaining Iterations [Max: %d, Mean: %f]\n", __func__, max, mean);
 		fprintf(stderr, "[M::%s] Version: %s\n", __func__, MG_VERSION);
 		fprintf(stderr, "[M::%s] CMD:", __func__);
 		for (i = 0; i < argc; ++i)
