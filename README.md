@@ -14,7 +14,7 @@ cd minicycle && make
 - [Users' Guide](#uguide)
   - [Installation](#install)
   - [Sequence mapping](#map)
-  - [Sequence mapping](#bench)
+  - [Benchmark](#bench)
 - [Future work](#future_work)
 - [Credits](#credit)
 
