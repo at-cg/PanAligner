@@ -5,7 +5,7 @@ OBJS=		kalloc.o kthread.o algo.o sys.o gfa-base.o gfa-io.o gfa-aug.o gfa-bbl.o g
             sketch.o misc.o bseq.o options.o shortk.o miniwfa.o \
 			index.o lchain.o gchain1.o galign.o gcmisc.o map-algo.o cal_cov.o \
 			format.o gmap.o ggsimple.o ggen.o asm-call.o graphUtils.o
-PROG=		minicycle
+PROG=		PanAligner
 LIBS=		-lz -lpthread -lm -fopenmp
 
 ifneq ($(asan),)
@@ -21,7 +21,7 @@ endif
 
 all:$(PROG)
 
-minicycle:$(OBJS) main.o
+PanAligner:$(OBJS) main.o
 		$(CXX) $(CPPFLAGS) $^ -o $@ $(LIBS)
 
 clean:
