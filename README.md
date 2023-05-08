@@ -38,9 +38,9 @@ PanAligner offers support for both sequence-to-sequence alignment and sequence-t
 
 ```sh
 # Map sequence to sequence
-./minicycle -cx lr test/MT-human.fa test/MT-orangA.fa > out.paf
+./PanAligner -cx lr test/MT-human.fa test/MT-orangA.fa > out.paf
 # Map sequence to graph
-./minicycle -cx lr test/MT.gfa test/MT-orangA.fa > out.gaf
+./PanAligner -cx lr test/MT.gfa test/MT-orangA.fa > out.gaf
 ```
 
 ## <a name="bench"></a>Benchmark
