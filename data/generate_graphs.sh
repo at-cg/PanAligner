@@ -1,5 +1,5 @@
-echo " Generating 10H graph ..."
-./minigraph/minigraph -t32 --inv=no -cxggs \
+echo " Generating 10H cyclic graph ..."
+./minigraph/minigraph -t32 --inv=yes -cxggs \
 CHM13Y.fa \
 HG002.1.fa \
 HG002.2.fa \
@@ -10,11 +10,11 @@ HG005.2.fa \
 HG00621.1.fa \
 HG00621.2.fa \
 HG00673.1.fa > CHM13Y_10H.gfa
-echo " Generated 10H graph"
+echo " Generated 10H cyclic graph"
 
 
-echo " Generating 40H graph"
-~/minigraph/minigraph -t32 --inv=no -cxggs  \
+echo " Generating 40H cyclic graph"
+~/minigraph/minigraph -t32 --inv=yes -cxggs  \
 CHM13Y.fa \
 HG002.1.fa \
 HG002.2.fa \
@@ -55,11 +55,11 @@ HG01891.2.fa \
 HG01928.1.fa \
 HG01928.2.fa \
 HG01952.1.fa > CHM13Y_40H.gfa
-echo " Generated 40H graph"
+echo " Generated 40H cyclic graph"
 
 
-echo " Generating 80H graph"
-~/minigraph/minigraph -t32 --inv=no -cxggs  \
+echo " Generating 80H cyclic graph"
+~/minigraph/minigraph -t32 --inv=yes -cxggs  \
 CHM13Y.fa \
 HG002.1.fa \
 HG002.2.fa \
@@ -140,11 +140,11 @@ HG03453.2.fa \
 HG03486.1.fa \
 HG03486.2.fa \
 HG03492.1.fa > CHM13Y_80H.gfa
-echo " Generated 80H graph"
+echo " Generated 80H cyclic graph"
 
 
-echo " Generating 95H graph"
-./minigraph/minigraph -t32 --inv=no -cxggs  \
+echo " Generating 95H cyclic graph"
+./minigraph/minigraph -t32 --inv=yes -cxggs  \
 CHM13Y.fa \
 HG002.1.fa \
 HG002.2.fa \
@@ -240,15 +240,15 @@ NA20129.1.fa \
 NA20129.2.fa \
 NA21309.1.fa \
 NA21309.2.fa > CHM13Y_95H.gfa
-echo " Generated 95H graph"
+echo " Generated 95H cyclic graph"
 
-echo " Generating dummy Linear graph for GraphLAigner and GraphChainer..."
+echo " Generating dummy Linear graph for GraphLAigner"
 ./minigraph/minigraph -t32 --inv=no -cxggs CHM13Y.fa > CHM13Y_L.gfa
-echo "Generated dummy graph"
-echo "Generated 10H graph and 95H graph"
+echo "Generated dummy Linear graph"
+echo "Generated 10H cyclic graph and 95H cyclic graph"
 
 echo "Graph Statistics"
-conda activate minichain_data
+conda activate PanAligner_data
 gfatools gfa2fa CHM13Y_L.gfa > CHM13Y_L.fa
 gfatools gfa2fa CHM13Y_95H.gfa > CHM13Y_95H.fa
 gfatools gfa2fa CHM13Y_10H.gfa > CHM13Y_10H.fa
