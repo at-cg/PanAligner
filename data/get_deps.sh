@@ -1,6 +1,6 @@
 echo "Getting agc, pbsim2, imagemagick and samtools with conda..."
-conda create -n minichain_data
-conda activate minichain_data
+conda create -n PanAligner_data
+conda activate PanAligner_data
 conda install -y -c bioconda agc pbsim2 samtools seqkit gfatools
 conda install -y -c conda-forge imagemagick gnuplot 
 conda deactivate
@@ -29,15 +29,6 @@ cd GraphAligner
 git submodule update --init --recursive
 conda env create -f CondaEnvironment_linux.yml
 conda activate GraphAligner
-make -j32
-conda deactivate
-cd ..
-
-echo "Getting GraphChainer..."
-git clone https://github.com/algbio/GraphChainer.git
-git submodule update --init --recursive
-conda env create -f CondaEnvironment.yml
-conda activate GraphChainer
 make -j32
 conda deactivate
 cd ..
