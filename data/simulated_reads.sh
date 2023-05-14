@@ -3,11 +3,9 @@ conda activate minichain_data
 mkdir Reads
 mkdir Ref
 mkdir Results
-mkdir Results/minimap2
 mkdir Results/minigraph
-mkdir Results/minichain
+mkdir Results/PanAligner
 mkdir Results/GraphAligner
-mkdir Results/GraphChainer
 
 echo "Extracting reads..."
 for i in $(seq 1 1 22)
@@ -44,7 +42,7 @@ do
 	./k8 paftools.js pbsim2fq Ref/chr$i.fasta.fai Ref/chr$i.maf > Reads/read_chr$i.fa
 	echo "Processed chr$i"
 done
-cat Reads/read_* > Reads/CHM13Y_reads_5%.fa
+cat Reads/read_* > Reads/CHM13Y_5%_reads.fa
 echo "Finished embedding metadata to reads with "pbsim2fq""
 
 
