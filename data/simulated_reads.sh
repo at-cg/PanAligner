@@ -1,4 +1,4 @@
-conda activate minichain_data
+conda activate PanAligner_data
 
 mkdir Reads
 mkdir Ref
