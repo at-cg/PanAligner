@@ -57,9 +57,9 @@ PanAligner was evaluated against other sequence-to-graph aligners to assess its 
 ## <a name="future_work"></a>Future work
 ## Future Work
 
-Future work for PanAligner will focus on the following directions:\
+Future work for PanAligner will focus on the following directions:
 
-- Testing PanAligner's performance on pangenome graphs constructed using alternative methods like [PGGB][https://www.biorxiv.org/content/10.1101/2023.04.05.535718v1] and [Minigraph-Cactus](https://www.biorxiv.org/content/10.1101/2022.10.06.511217v2).
+- Testing PanAligner's performance on pangenome graphs constructed using alternative methods like [PGGB](https://www.biorxiv.org/content/10.1101/2023.04.05.535718v1) and [Minigraph-Cactus](https://www.biorxiv.org/content/10.1101/2022.10.06.511217v2).
 - Exploring formulations for haplotype-constrained co-linear chaining to control the exponential growth of combinatorial search space with the increasing number of haplotypes.
 - Generalizing the proposed techniques for aligning reads to genome assembly graphs that contain cycles.
 
