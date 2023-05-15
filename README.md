@@ -20,8 +20,7 @@ cd PanAligner && make
 
 ## <a name="intro"></a>Introduction
 
-PanAligner is a sequence-to-graph aligner. It uses a co-linear chaining algorithm to achieve optimal alignment and imposes penalties for gap costs. \
-PanAligner can scale to human pangenome graphs for read alignment and offers practical usage of time and memory resources.
+PanAligner is an efficient end-to-end long-read aligner for cyclic pangenome graphs. It utilize co-linear chaining and iterative algorithms to achieve optimal alignment while imposing gap penalties. PanAligner leverages [minichain](https://github.com/at-cg/minichain.git) approach for aligning reads to directed acyclic graphs (DAGs). It incorporates open-source code from [minichain](https://github.com/at-cg/minichain.git), [minigraph](https://github.com/lh3/minigraph.git), and [GraphChainer](https://github.com/algbio/GraphChainer.git) for other necessary components besides co-linear chaining. PanAligner can scale to human pangenome graphs for read alignment and offers practical usage of time and memory resources.
 
 ## <a name="uguide"></a>Users' Guide
 
@@ -44,27 +43,34 @@ PanAligner offers support for both sequence-to-sequence alignment and sequence-t
 ```
 
 ## <a name="bench"></a>Benchmark
-PanAligner has been compared to other sequence-to-graph aligners to demonstrate scalability and accuracy gains. The experiments were conducted using human pangenome graphs constructed from  [94 high-quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) provided by the Human Pangenome Reference Consortium and [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) provided by the Telomere-to-Telomere consortium. The evaluation was performed on a simulated long-read dataset with 0.5x coverage, using graphs of two sizes. The results revealed superior read mapping precision ([as shown in the figure](#Plot)). Notably, on the largest graph constructed from all 95 haplotypes, PanAligner used 2 hours and 36 minutes, utilizing 44 GB RAM with 32 threads.
+
+PanAligner was evaluated against other sequence-to-graph aligners to assess its scalability and accuracy advantages. The evaluation utilized human pangenome graphs constructed from [94 high-quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) provided by the Human Pangenome Reference Consortium, along with the [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) from the Telomere-to-Telomere consortium. Simulated long-read data with 0.5× sequencing coverage and 5% error-rate were used for the experiments, employing cyclic graphs of sizes 10H, 40H, and 95H, where the prefix integer represents the haplotype count in each graph. The results demonstrated superior read mapping precision, [as shown in the figure](#Plot). Notably, even on the largest graph with 95 haplotypes, PanAligner achieved efficient performance, requiring 2 hours and 36 minutes, 44 GB RAM, and 32 threads on [perlmutter CPU nodes](https://docs.nersc.gov/systems/perlmutter/architecture/#cpu-nodes).
+
 
 <p align="center" id="Plot">
   <a href="./data/plot.png">
-    <img src="./data/plot.png" width="700" alt="Plot">
+    <img src="./data/plot.png" width="750" alt="Plot">
   </a>
 </p>
 
-<!-- 
+ 
 ## <a name="future_work"></a>Future work
+## Future Work
 
-* Extend minichain to support cyclic graphs.
+Future work for PanAligner will focus on the following directions:\
 
-* Extend minichain to support Graph generation. -->
+- Testing PanAligner's performance on pangenome graphs constructed using alternative methods like [PGGB][https://www.biorxiv.org/content/10.1101/2023.04.05.535718v1] and [Minigraph-Cactus](https://www.biorxiv.org/content/10.1101/2022.10.06.511217v2).
+- Exploring formulations for haplotype-constrained co-linear chaining to control the exponential growth of combinatorial search space with the increasing number of haplotypes.
+- Generalizing the proposed techniques for aligning reads to genome assembly graphs that contain cycles.
+
 
 ## <a name="credit"></a>Credits
-PanAligner utilizes code base of [Minichain][minichain], which is released under MIT License.
-Reference: [Sequence to graph alignment using gap-sensitive co-linear chaining.][paper]
+PanAligner utilizes code base of [minigraph](https://github.com/lh3/minigraph.git) and [Minichain][minichain], released under MIT License.
+Reference: [The design and construction of reference pangenome graphs with minigraph][paper_1] and [Sequence to graph alignment using gap-sensitive co-linear chaining.][paper_2]
 
 [gwfa]: https://arxiv.org/abs/2206.13574
-[paper]: https://www.biorxiv.org/content/10.1101/2022.08.29.505691v2
+[paper_1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-020-02168-z
+[paper_2]: https://www.biorxiv.org/content/10.1101/2022.08.29.505691v2
 [minichain]: https://github.com/at-cg/minichain
 [zlib]: http://zlib.net/
 [gcc9]: http://zlib.net/
