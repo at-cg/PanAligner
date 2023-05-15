@@ -55,7 +55,6 @@ PanAligner was evaluated against other sequence-to-graph aligners to assess its 
 
  
 ## <a name="future_work"></a>Future work
-## Future Work
 
 Future work for PanAligner will focus on the following directions:
 
