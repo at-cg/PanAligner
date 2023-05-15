@@ -19,7 +19,7 @@ cd PanAligner && make
 
 ## <a name="intro"></a>Introduction
 
-PanAligner is an efficient tool to align long-reads or assembly contigs to  a cyclic pangenome graph. We follow the seed-chain-extend procedure. We provide the first exact implementation of co-linear chaining technique which is generalized to cyclic graphs. If the input graph is a DAG, PanAligner works similarly as [minichain](https://github.com/at-cg/minichain.git). We also benefit from open-source code from [minichain](https://github.com/at-cg/minichain.git), [minigraph](https://github.com/lh3/minigraph.git), and [GraphChainer](https://github.com/algbio/GraphChainer.git) for other necessary components besides co-linear chaining. PanAligner can scale to human pangenome graphs and whole-genome sequencing read sets.
+PanAligner is an efficient tool to align long-reads or assembly contigs to  a cyclic pangenome graph. We follow the seed-chain-extend procedure. We provide the first exact implementation of co-linear chaining technique which is generalized to cyclic graphs. The details of the formulation and the algorithm are provided in our paper. If the input graph is a DAG, PanAligner works similarly as [minichain](https://github.com/at-cg/minichain.git). We benefit from open-source code from [minichain](https://github.com/at-cg/minichain.git), [minigraph](https://github.com/lh3/minigraph.git), and [GraphChainer](https://github.com/algbio/GraphChainer.git) for other necessary components besides co-linear chaining. PanAligner can scale to human pangenome graphs and whole-genome sequencing read sets.
 
 ## <a name="uguide"></a>Users' Guide
 
