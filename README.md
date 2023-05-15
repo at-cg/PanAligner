@@ -32,7 +32,7 @@ To install PanAligner, type `make` in the source code directory.
 
 
 ### <a name="map"></a>Sequence mapping
-PanAligner can be used for both sequence-to-sequence alignment and sequence-to-graph mapping. For sequence-to-sequence alignment, PanAligner maps a read to a reference in fasta format and provide read mapping output in [PAF][paf] format. For sequence-to-graph mapping, Minicycle takes the graph in [GFA][gfa1] and [rGFA][rGFA] format as input, and provides read mapping in [GAF][gaf] format.
+PanAligner can be used for both sequence-to-sequence alignment and sequence-to-graph mapping. For sequence-to-sequence alignment, PanAligner maps a read to a reference in fasta format and provide read mapping output in [PAF][paf] format. For sequence-to-graph mapping, PanAligner takes the graph in [GFA][gfa1] and [rGFA][rGFA] format as input, and provides read mapping in [GAF][gaf] format.
 
 ```sh
 # Map sequence to sequence
