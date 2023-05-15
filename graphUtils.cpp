@@ -3,6 +3,7 @@
 std::vector<std::vector<std::vector<int>>> cyclic_innode, cyclic_outnode;
 std::vector<std::vector<int64_t>> D_cyclic;
 int edges_rm=0;
+bool cyclic_flag=false;
 
 //Cyclic to DAG conversion
 //Function to get the vertex order for SCC computation Using DFS
@@ -579,6 +580,15 @@ void graphUtils::Connected_components()
         std::cerr<< "Number of nodes and edges in DAG : " <<dag_vertex<<" "<<dag_edge<<std::endl;
         std::cerr<< "Number of edges removed : " <<edges_rm <<std::endl;
     }
+    if(edges_rm > 0)
+    {
+        cyclic_flag=true;
+        std::cerr<<"[M::Cyclicity] Graph is Cyclic"<<"\n";
+    } 
+    else
+    {
+        std::cerr<<"[M::Cyclicity] Graph is Acyclic"<<"\n";
+    }
 }
 
 
@@ -651,7 +661,10 @@ int graphUtils::is_cyclic() // Check cyclicity of component and convert to acycl
     q.clear();
     in_degree.clear();
     out_degree.clear();
-    //std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]\n"<< std::endl;
+    if(param_z)
+    {
+        std::cerr << "[Connected components : " << num_cid << ", components with cycle : " << cycle_count << "]\n"<< std::endl;
+    }
     return cycle_count;
 }
 
@@ -1181,19 +1194,23 @@ void graphUtils::MPC_index()
                     {
                         last2reach[cid][k][v] = std::max(last2reach[cid][k][v], last2reach[cid][k][u]);
                     }
-                    //Checking L2R values convergence
-                    if(L2R[cid][k][v]!=last2reach[cid][k][v])
+                    //Checking L2R values convergence whn graph is cyclic
+                    if(cyclic_flag == true)
                     {
-                        L2R_temp=false;
-                        L2R_flag=(L2R_flag && L2R_temp);
-                    }
-                    else
-                    {
-                        L2R_temp=true;
-                        L2R_flag=(L2R_flag && L2R_temp);
+                        if(L2R[cid][k][v]!=last2reach[cid][k][v])
+                        {
+                            L2R_temp=false;
+                            L2R_flag=(L2R_flag && L2R_temp);
+                        }
+                        else
+                        {
+                            L2R_temp=true;
+                            L2R_flag=(L2R_flag && L2R_temp);
+                        }
+                        L2R[cid][k][v]=last2reach[cid][k][v];
                     }
                     assert(last2reach[cid][k][v]>=-1);
-                    L2R[cid][k][v]=last2reach[cid][k][v];
+
                 }
             }
             L2R_itr++;
@@ -1238,19 +1255,22 @@ void graphUtils::MPC_index()
                             }
                         }
                     }   
-                    //Checking Dis values convergence
-                    if(Dis[cid][k][v]!= Distance[cid][k][v])
+                    //Checking Dis values convergence when graph is cyclic
+                    if(cyclic_flag == true)
                     {
-                        D_temp=false;
-                        D_flag=(D_flag && D_temp);
-                    }
-                    else
-                    {
-                        D_temp=true;
-                        D_flag=(D_flag && D_temp);
+                        if(Dis[cid][k][v]!= Distance[cid][k][v])
+                        {
+                            D_temp=false;
+                            D_flag=(D_flag && D_temp);
+                        }
+                        else
+                        {
+                            D_temp=true;
+                            D_flag=(D_flag && D_temp);
+                        }
+                        Dis[cid][k][v]=Distance[cid][k][v];
                     }
                     assert(Distance[cid][k][v]>=0);
-                    Dis[cid][k][v]=Distance[cid][k][v];
                 }
             }
             //// std::cerr<<D_itr<<" ";
@@ -1321,7 +1341,7 @@ void graphUtils::MPC_index()
         //D_cyclic calculation
         int64_t D_approx = std::numeric_limits<int64_t>::max()/2; 
         D_cyclic[cid].resize(adj_cc[cid].size(), std::numeric_limits<int64_t>::max()/2);
-        if(edges_rm > 0)
+        if(cyclic_flag == true)
         {
 	        //std::cerr << "\ncid : " << cid << " D_cyclic : ";  
             for (size_t v = 0; v < N; v++)
@@ -1556,22 +1576,28 @@ std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
                         std::cerr << " cid  : " << cid << " idx : " << t.anchor << " top_v :" << t.top_v << " pos : " << t.pos << " task : " << t.task << " path : " << t.path << " val_3 : " << val_3  << " M.y : " << M[cid][t.anchor].y <<  " dist2begin : "  << dist2begin[cid][t.path][t.v] << " M[i].d : " << t.d << "\n"; 
                     }
                 }
-                //Checking C[j] scores convergence 
-                if(C[t.anchor]!=C_temp[t.anchor])
+                //Checking C[j] scores convergence when graph is cyclic
+                if(cyclic_flag == true)
                 {
-                    temp_flag=false;
-                    C_flag=(C_flag && temp_flag);
+                    if(C[t.anchor]!=C_temp[t.anchor])
+                    {
+                        temp_flag=false;
+                        C_flag=(C_flag && temp_flag);
+                    }
+                    else
+                    {
+                        temp_flag= true;
+                        C_flag=(C_flag && temp_flag);
+                    }
+                    C_temp[t.anchor]=C[t.anchor];
                 }
-                else
-                {
-                    temp_flag= true;
-                    C_flag=(C_flag && temp_flag);
-                }
-                C_temp[t.anchor]=C[t.anchor];
             }
             //reinitializing RMQ tree
-            I.clear();
-            I.resize(K,IndexT(defaul_value));
+            if(cyclic_flag == true)
+            {
+                I.clear();
+                I.resize(K,IndexT(defaul_value));
+            }
             ITR++;
         }
         C_flag=false;
