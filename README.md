@@ -54,7 +54,7 @@ We evaluated PanAligner against other sequence-to-graph aligners to assess its s
 
 
 ## <a name="cite"></a>Citation
-Jyotshna Rajput, Ghanshyam Chandra, Chirag Jain. [Co-linear Chaining on General Graphs](https://www.biorxiv.org/content/10.1101/2023.06.21.545871v1). WABI 2023
+Jyotshna Rajput, Ghanshyam Chandra, Chirag Jain. [Co-linear Chaining on Pangenome Graphs](https://www.biorxiv.org/content/10.1101/2023.06.21.545871v1). WABI 2023
 
 [gwfa]: https://arxiv.org/abs/2206.13574
 [paper_1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-020-02168-z
