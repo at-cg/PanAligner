@@ -1,5 +1,5 @@
 CXX=			g++
-CPPFLAGS=		-g -Wall -std=c++2a -march=native -O3 -w -pg
+CPPFLAGS=		-g -Wall -std=c++2a -march=native -O3 -w 
 INCLUDES=
 OBJS=		kalloc.o kthread.o algo.o sys.o gfa-base.o gfa-io.o gfa-aug.o gfa-bbl.o gfa-ed.o \
             sketch.o misc.o bseq.o options.o shortk.o miniwfa.o \
