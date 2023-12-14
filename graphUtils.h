@@ -110,7 +110,8 @@ class graphUtils
 	float scale_factor;
 	bool param_z;
 	int lin_ref = 0;
-	int max = -1, count = 0, max_sum = 0, temp_max = -1;
+	int max = -1, count = 0, max_sum = 0, temp_max = -1, max_N=-1, temp_N=-1;
+	int64_t sum_N=0;
 
   
     graphUtils(gfa_t *g); // This is constructor

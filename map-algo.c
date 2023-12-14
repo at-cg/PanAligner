@@ -27,6 +27,12 @@ void get_Op(graphUtils *graph_Op)
 	graphOp = graph_Op;
 }
 
+void get_vars_N(int &max_N, int64_t &sum_N, int &count){
+	max_N = graphOp->max_N;
+	sum_N = graphOp->sum_N;
+	count = graphOp->count;
+}
+
 void get_vars(int &max, int &max_sum, int &count){
 	max = graphOp->max;
 	max_sum = graphOp->max_sum;

@@ -4,6 +4,9 @@ std::vector<std::vector<std::vector<int>>> cyclic_innode, cyclic_outnode;
 std::vector<std::vector<int64_t>> D_cyclic;
 int edges_rm=0;
 bool cyclic_flag=false;
+int PathCover_LB, PathCover_UB;
+const int INF = 1e9;
+std::vector<std::vector<int>> path_MF(3);
 
 //Cyclic to DAG conversion
 //Function to get the vertex order for SCC computation Using DFS
@@ -329,6 +332,7 @@ graphUtils::graphUtils(gfa_t *g)
 // Read and store the Graph in Adjacency list
 void graphUtils::read_graph()
 {
+    // std::cerr<<"Starting to read the graph\n";
     uint32_t v;
     n_vtx = gfa_n_vtx(g);
     // Resize node_len
@@ -378,6 +382,8 @@ void graphUtils::read_graph()
         }
     }
 
+    //std::cerr<<"Graph has been read \n";
+    // std::cerr<< "Number of nodes and edges in Cyclic graph : " <<n_vtx<<" "<<num_edges<<std::endl;
     if(param_z)
     {
         std::cerr<< "Number of nodes and edges in Cyclic graph : " <<n_vtx<<" "<<num_edges<<std::endl;
@@ -432,6 +438,7 @@ void DFS(std::vector<std::vector<int>> un_adj, std::vector<bool> &visited, int u
 void graphUtils::Connected_components()
 {
     //print_graph();
+    //std::cerr<<"Graph has been stored in adjacency list (adj_) \n";
     std::vector<std::vector<int>> comp_adj;
     int comp_size, dag_edge=0, dag_vertex=0, adj_edge=0;
     size_t num_components;
@@ -474,8 +481,13 @@ void graphUtils::Connected_components()
         visited.clear(); 
     }
 
+    // std::cerr<<"Total number of connected components "<<num_components<<"\n";
+
     num_cid = num_components;
     // Storing Connected Components
+
+    //std::cerr<<"Conversion to DAG is started \n";
+    auto start = std::chrono::high_resolution_clock::now();
     conn_comp.resize(num_components);
     for (int i = 0; i < n_vtx; i++)
     {
@@ -566,12 +578,18 @@ void graphUtils::Connected_components()
             dag_vertex++;
             //std::cerr<<"\n";
         }
-        //// std::cerr<<"Total number of edges in Acyclic Component "<<cid<<" :"<<"-> [";
+        //std::cerr<<"Total number of edges in Acyclic Component "<<cid<<" :"<<"-> [";
         //// std::cerr<<comp_count<<"] \n";
         comp_adj.clear(); 
     }
     //// std::cerr<<"Total number of edges in cyclic graph "<<comp_count1<<"\n";
-    // std::cerr<<"\nTotal number of edges in DAG "<<dag_edge<<"\n";
+    auto end = std::chrono::high_resolution_clock::now();
+    
+    //std::cerr<<"Graph has been converted into DAG \n";
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    //std::cout << "Elapsed time for DAG conversion: " << duration << " milliseconds" << std::endl;
+
+    // std::cerr<<"Total number of edges in DAG "<<dag_edge<<"\n";
     // std::cerr<<"Total number of nodes in DAG "<<dag_vertex<<"\n\n";
     // std::cerr<<"Number of edges removed :"<<adj_edge-dag_edge<<"\n\n";
     edges_rm=adj_edge-dag_edge;
@@ -884,8 +902,7 @@ std::vector<std::vector<int>> graphUtils::shrink(int cid)
     return ret;
 }
 
-bool check_MPC(std::vector<std::vector<int>> adj, std::vector<int> path_verify, int k, int cid)
-{
+bool check_MPC(std::vector<std::vector<int>> adj, std::vector<int> path_verify, int k, int cid){
     int count = 0;
     for (int i = 0; i < path_verify.size() - 1; i++)
     {
@@ -1017,11 +1034,13 @@ void graphUtils::MPC()
    }
    // Compute [min-max] paths for cids
   int min = path_cover[0].size();
+  path_MF[0].push_back(path_cover[0].size());
   int max = min;
   for(int cid = 1; cid < num_cid; cid++)
   {
       min = min<path_cover[cid].size()?min:path_cover[cid].size();
       max = max>path_cover[cid].size()?max:path_cover[cid].size();
+      path_MF[0].push_back(path_cover[cid].size());
   }
   fprintf(stderr, "[M::%s] range MPC [%d-%d] \n", __func__,min,max);
   // std::cerr << "[range wcc [" << min << "-" << max << "]" << std::endl; 
@@ -1042,7 +1061,11 @@ void graphUtils::MPC()
 
         }
     }*/
+    PathCover_LB= min;
+    PathCover_UB= max;
 }
+
+
 
 //Function to calculate approximate distance(D_approx[u,v]) 
 int64_t D_APPROX(int u, int v, int cid, std::vector<std::vector<std::vector<int>>> &path, std::vector<std::vector<std::vector<int64_t>>> &Distance, std::vector<std::vector<std::vector<int>>> &path_cover, std::vector<std::vector<std::vector<int>>> &index, std::vector<std::vector<std::vector<int>>> &last2reach, std::vector<std::vector<std::vector<int64_t>>> &dist2begin)
@@ -1076,12 +1099,466 @@ int64_t D_APPROX(int u, int v, int cid, std::vector<std::vector<std::vector<int>
     return D_approx;
 }
 
+//This function inserts the edges in the graph adjacency list
+void addEdge(std::vector<std::vector<int>> &adj, int u, int v)
+{
+    adj[u].push_back(v);
+}
+
+// Function to print the graph adjacency list
+void printGraph(std::vector<std::vector<int>> &adj, int n_vtx)
+{
+    std::cout << "Adjacency list of vertex"<< "\n";
+    for (int v = 0; v < n_vtx; ++v)
+    {
+        std::cout<< v;
+        for (auto x : adj[v])
+            std::cout << "-> " << x;
+        std::cout << "\n";
+    }
+}
+
+//function to create a flow graph fg(NN)
+void createFlowGraph(std::vector<std::vector<int>>& adj, std::vector<std::vector<int>>& fg, std::vector<std::unordered_map<int, int>>& Demand, std::vector<std::unordered_map<int, int>>& temp_capacity, std::vector<std::unordered_map<int, int>>& capacities, std::vector<std::vector<int>>& innode_adj, int& N, int& NN, int& s_flow)
+{   
+    int temp_source= 2*N;
+    int temp_sink= 2*N+1;
+    int source= NN-2;
+    int sink = NN-1;
+
+    for(int i=0; i< N; i++)
+    {   
+
+        //Add the edges from 2i to 2i+1 (Split the nodes)
+        addEdge(fg, 2*i, 2*i+1);
+        
+        temp_capacity[2*i][2*i+1]= N;
+        Demand[2*i][2*i+1]=1;
+
+        addEdge(fg, temp_source, 2*i);
+        temp_capacity[temp_source][2*i]= N;
+        Demand[temp_source][2*i]=0;
+
+        addEdge(fg, 2*i+1, temp_sink);
+        temp_capacity[2*i+1][temp_sink]= N;
+        Demand[2*i+1][temp_sink]=0;
+
+        for (auto x : adj[i])
+        {
+            //add edges from out_i to in_x in g corresponding to i->x edge in adj list
+            addEdge(fg, 2*i+1, 2*x);
+            temp_capacity[2*i+1][2*x]= N;
+            Demand[2*i+1][2*x]=0;
+        }
+        addEdge(fg, source, 2*i);
+        addEdge(fg, source, 2*i+1);
+        addEdge(fg, 2*i, sink);
+        addEdge(fg, 2*i+1, sink);
+    }
+
+    addEdge(fg, source, temp_source);
+    addEdge(fg, source, temp_sink);
+    addEdge(fg, temp_source, sink);
+    addEdge(fg, temp_sink, sink);
+    addEdge(fg, temp_sink, temp_source);
+
+
+    //Creating innode adjacency list of flow graph fg
+    for(int u= 0; u< NN; u++)
+    {
+        
+        for(auto v: fg[u])
+        {
+            
+            addEdge(innode_adj, v, u);
+            // if(static_cast<int>(v) < NN-2 && static_cast<int>(u) < NN-2)
+            //     std::cout<<"Demand("<<u<<","<<v<<"):"<<Demand[u][v]<<" and capacity("<<u<<","<<v<<"):"<<temp_capacity[u][v]<<"\n";
+        }
+    }
+
+    // std::cout<<"In-Node adjacency list \n";
+
+    //Uncomment this line to print flow graph
+    // printGraph(fg, NN);
+    
+     for(int u= 0; u< NN; u++)
+    {
+        
+        for(auto v: fg[u])
+        {
+            
+            capacities[v][u]=0;
+         }
+    }
+
+    //Adding capacities
+    for(auto v: fg[source])
+    {   
+        capacities[source][v]=0;
+        for(auto u: innode_adj[v])
+        {
+            if(static_cast<int>(u) < NN-2)
+            {   
+                capacities[source][v]+=Demand[u][v];
+            }
+        }
+    }
+
+    for(auto v: innode_adj[sink])
+    {   
+        capacities[v][sink]=0;
+        for(auto w: fg[v])
+        {
+            if(static_cast<int>(w) < NN-2)
+            {   
+                //std::cout<<Demand[v][w]<<" ";
+                capacities[v][sink]+=Demand[v][w];
+            }
+        }
+    }
+    for(int u= 0; u< NN-2; u++)
+    {
+        
+        for(auto v: fg[u])
+        {
+            if(static_cast<int>(v) < NN-2)
+                capacities[u][v]=temp_capacity[u][v]-Demand[u][v];
+        }
+    } 
+    //capacities(t-s)
+    capacities[temp_sink][temp_source]=N;
+    
+
+//     // Print the capacities
+//    for(int u= 0; u< NN; u++)
+//     {
+        
+//         for(auto v: fg[u])
+//         {
+//             std::cout<<"capacities: "<<u<<","<<v<<","<<capacities[u][v]<<"\n";
+//             //addEdge(fg, v, u);
+//             // capacities[v][u]=0;
+//          }
+//     }
+
+    for(auto v: fg[source])
+        s_flow +=capacities[source][v];
+
+    // std::cout<<"saturated flow"<<s_flow<<"\n";
+
+}
+// A structure to represent a edge between
+// two vertex
+struct Edge {
+	int v; // Vertex v (or "to" vertex)
+		// of a directed edge u-v. "From"
+		// vertex u can be obtained using
+		// index in adjacent array.
+
+	int flow; // flow of data in edge
+
+	int C; // capacity
+
+	int rev; // To store index of reverse
+			// edge in adjacency list so that
+			// we can quickly find it.
+};
+
+// Residual Graph
+class Graph {
+	// int V; // number of vertex
+	// int* level; // stores level of a node
+	// std::vector<Edge>* adj;
+
+public:
+    int V; // number of vertex
+    int* level; // stores level of a node
+    std::vector<Edge>* adj;
+	Graph(int V)
+	{
+		adj = new std::vector<Edge>[V];
+		this->V = V;
+		level = new int[V];
+	}
+
+	// add edge to the graph
+	void AddEdge(int u, int v, int C)
+	{
+      	// Check if the edge already exists and update its capacity
+    	for (Edge &e : adj[u]) {
+        if (e.v == v) {
+            e.C = C; // Update the capacity
+            return;
+        	}
+   		}
+
+      
+		// Forward edge : 0 flow and C capacity
+		Edge a{ v, 0, C, (int)adj[v].size() };
+
+		// Back edge : 0 flow and 0 capacity
+		Edge b{ u, 0, 0, (int)adj[u].size() };
+
+		adj[u].push_back(a);
+		adj[v].push_back(b); // reverse edge
+	}
+
+	bool BFS(int s, int t);
+	int sendFlow(int s, int flow, int t, int ptr[]);
+	
+    
+};
+
+// Finds if more flow can be sent from s to t.
+// Also assigns levels to nodes.
+bool Graph::BFS(int s, int t)
+{
+	for (int i = 0; i < V; i++)
+		level[i] = -1;
+
+	level[s] = 0; // Level of source vertex
+
+	// Create a queue, enqueue source vertex
+	// and mark source vertex as visited here
+	// level[] array works as visited array also.
+	std::list<int> q;
+	q.push_back(s);
+
+	std::vector<Edge>::iterator i;
+	while (!q.empty()) {
+		int u = q.front();
+		q.pop_front();
+		for (i = adj[u].begin(); i != adj[u].end(); i++) {
+			Edge& e = *i;
+			if (level[e.v] < 0 && e.flow < e.C) {
+				// Level of current vertex is,
+				// level of parent + 1
+				level[e.v] = level[u] + 1;
+
+				q.push_back(e.v);
+			}
+		}
+	}
+
+	// IF we can not reach to the sink we
+	// return false else true
+	return level[t] < 0 ? false : true;
+}
+
+// A DFS based function to send flow after BFS has
+// figured out that there is a possible flow and
+// constructed levels. This function called multiple
+// times for a single call of BFS.
+// flow : Current flow send by parent function call
+// start[] : To keep track of next edge to be explored.
+//		 start[i] stores count of edges explored
+//		 from i.
+// u : Current vertex
+// t : Sink
+int Graph::sendFlow(int u, int flow, int t, int start[])
+{
+	// Sink reached
+	if (u == t)
+		return flow;
+
+	// Traverse all adjacent edges one -by - one.
+	for (; start[u] < adj[u].size(); start[u]++) {
+		// Pick next edge from adjacency list of u
+		Edge& e = adj[u][start[u]];
+
+		if (level[e.v] == level[u] + 1 && e.flow < e.C) {
+			// find minimum flow from u to t
+			int curr_flow = std::min(flow, e.C - e.flow);
+
+			int temp_flow = sendFlow(e.v, curr_flow, t, start);
+
+			// flow is greater than zero
+			if (temp_flow > 0) {
+				// add flow to current edge
+				e.flow += temp_flow;
+
+				// subtract flow from reverse edge
+				// of current edge
+				adj[e.v][e.rev].flow -= temp_flow;
+				return temp_flow;
+			}
+		}
+	}
+
+	return 0;
+}
+
+// Returns maximum flow in graph
+int DinicMaxflow(Graph &g, int s, int t, int NN, int cap)
+{
+    g.AddEdge(t-2, s-2, cap);
+	// Corner case
+	if (s == t)
+		return -1;
+
+	int total = 0; // Initialize result
+
+	// Augment the flow while there is path
+	// from source to sink
+	while (g.BFS(s, t) == true) {
+		// store how many edges are visited
+		// from V { 0 to V }
+		int* start = new int[NN + 1]{ 0 };
+
+		// while flow is not zero in graph from S to D
+		while (int flow = g.sendFlow(s, INT_MAX, t, start)) {
+
+			// Add path flow to overall flow
+			total += flow;
+		}
+	
+		// Remove allocated array
+		delete[] start;
+	}
+
+    for (int u = 0; u < g.V; u++) {
+        for (Edge& e : g.adj[u]) {
+            e.flow = 0;
+        }
+    }
+
+	// return maximum flow
+	return total;
+}
+// void printEdges(Graph& g) {
+//     for (int u = 0; u < g.V; u++) {
+//         for (const Edge& e : g.adj[u]) {
+//             std::cout << "Edge (" << u << " -> " << e.v << ") Capacity: " << e.C << std::endl;
+//         }
+//     }
+// }
+
+void clearGraph(Graph& g) {
+    for (int u = 0; u < g.V; u++) {
+        for (Edge& e : g.adj[u]) {
+            e.flow = 0;
+        }
+    }
+}
+
+//Function to find the minimum flow value in the given graph by varying t-s capacity
+int minFlowBinarySearch(Graph &Fg, int NN, int& s_flow, int LB, int UB)
+{   
+    int source = NN-2;
+    int sink = NN-1;
+    int ts_capacity=0;
+    int max_flow_temp=0;
+    int max_flow=0;
+
+
+
+    while(LB<=UB)
+    {
+        int M= LB + (UB - LB) / 2;
+        ts_capacity=M;
+        //addCapacities(fg, capacities, Demand, temp_capacity, innode_adj, ts_capacity, NN, s_flow);
+        // Fg.AddEdge(sink-1, source-1, ts_capacity);
+        max_flow= DinicMaxflow(Fg, source, sink, NN, ts_capacity);
+        // clearGraph(Fg);
+        // std::cout<<"1st ts_capacity, s_flow and max_flow "<<M<<" "<<s_flow<<" "<<max_flow<<"\n";
+        // printEdges(Fg);
+        
+    
+
+        if(max_flow == s_flow)
+        {
+            if(M > 0)
+            { 
+                int ts_capacity_temp=M-1;
+                //addCapacities(fg, capacities, Demand, temp_capacity, innode_adj, ts_capacity_temp, NN, s_flow);
+                // Fg.AddEdge(sink-1, source-1, ts_capacity_temp);
+                max_flow_temp= DinicMaxflow(Fg, source, sink, NN, ts_capacity_temp);
+                // clearGraph(Fg);
+                // std::cout<<"2nd t_scapacity and max flow_curr and max flow prev"<<ts_capacity_temp<<" "<<max_flow_temp<<" "<<max_flow<<"\n";
+                // printEdges(Fg);
+                if(max_flow_temp < max_flow)
+                    return M;
+                else
+                    UB= M-1;
+            }
+            else
+                return 0;
+        }
+        else
+            LB= M+1;
+
+    }
+    return 0;
+}
+
+
+int findMinimumFlow(std::vector<std::vector<int>>& adj, int N)
+{
+    //std::cout<<"Starting Min Flow function"<<std::endl;
+    int NN= 2*N+4;
+    std::vector<std::vector<int>> fg(NN);
+    std::vector<std::unordered_map<int, int>> capacities(NN);
+    std::vector<std::unordered_map<int, int>> Demand(2*N+2);
+    std::vector<std::unordered_map<int, int>> temp_capacities(NN);
+    std::vector<std::vector<int>> innode_adj(NN);
+
+
+    //uncomment to print the above input graph
+    // printGraph(adj, N);
+   
+    int s_flow=0;
+    //int ts_capacity= N;
+    int lower_bound= 1;
+    int upper_bound= N;
+    int min_flow=0;
+
+    
+    createFlowGraph(adj, fg, Demand, temp_capacities, capacities, innode_adj, N, NN, s_flow);
+    //addCapacities(fg, capacities, Demand, temp_capacities, innode_adj, ts_capacity, NN, s_flow);
+    // printGraph(fg, NN);
+    Graph Fg(NN);
+    for(int u= 0; u< NN; u++)
+    {
+        
+        for(auto v: fg[u])
+        {
+            Fg.AddEdge(u, v, capacities[u][v]);
+        }
+    }
+
+    Demand.clear();
+    temp_capacities.clear();
+    innode_adj.clear();
+
+   min_flow= minFlowBinarySearch(Fg, NN, s_flow, lower_bound, upper_bound);
+
+    //std::cout<<"\n Flow Graph \n";
+    // printGraph(fg, NN);
+    // int flow=maxflow(fg, capacities, source, sink, NN, ts_capacity);
+    // std::cout<<"MaxFlow: "<<flow<<" Saturating Flow: "<<s_flow<<"\n";
+
+    // std::cout<<"MinFlow: "<<min_flow<<"\n";
+    // return 0;
+    //std::cout<<"\n Flow Graph \n";
+    // printGraph(fg, NN);
+    // int flow=maxflow(fg, capacities, source, sink, NN, ts_capacity);
+    // std::cout<<"MaxFlow: "<<flow<<" Saturating Flow: "<<s_flow<<"\n";
+
+    //std::cout<<"MinFlow: "<<min_flow<<"\n";
+    fg.clear();
+    capacities.clear();
+    clearGraph(Fg);
+    return min_flow;
+}
 void graphUtils::MPC_index()
 {   
     int L2R_itr=0, max_L2R=0, min_L2R= std::numeric_limits<int>::max();
     int D_itr=0, max_D=0, min_D= std::numeric_limits<int>::max();
     int L2R_sum=0, D_sum=0;
     bool L2R_flag=false, L2R_temp, D_flag=false, D_temp;
+
+    int PC_minFlow_LB= PathCover_UB, PC_minFlow_UB=0;;
+
     std::vector<std::vector<std::vector<int>>> L2R, path;
     std::vector<std::vector<std::vector<int64_t>>> Dis;
     std::vector<std::vector<std::vector<int64_t>>> D_approx;
@@ -1279,7 +1756,14 @@ void graphUtils::MPC_index()
         D_flag=false;
         //// std::cerr<<"\nNumber of approx Distance computation iterations for componenet "<<cid<<": "<<D_itr<<"\n";
         max_D= std::max(max_D, D_itr);
-        min_D= std::min(min_D, D_itr);
+        min_D= std::min(min_D, D_itr); // for(int u= 0; u< NN; u++)
+    // {
+        
+    //     for(auto v: fg[u])
+    //     {
+    //         Fg.AddEdge(u, v, capacities[u][v]);
+    //     }
+    // }
         D_sum= D_sum + D_itr;
         D_itr=0;
 
@@ -1366,20 +1850,69 @@ void graphUtils::MPC_index()
                 }
             }
         }
+
+        if(param_z)
+        {
+            int comp_minFlow=0;
+            // PC_minFlow_LB=N;
+            // PC_minFlow_UB=0;    
+            comp_minFlow = findMinimumFlow(cyclic_outnode[cid], N);
+            path_MF[1].push_back(comp_minFlow);
+            int p_diff= path_MF[0][cid]-path_MF[1][cid];
+            // std::cout<<p_diff<<"\n";
+            path_MF[2].push_back(p_diff);
+
+            //std::cout<<"Minimum flow in component "<<cid<<" is: "<<comp_minFlow<<"\n";
+            // printGraph(cyclic_outnode[cid], N);
+
+            if(p_diff <= PC_minFlow_LB)
+                PC_minFlow_LB = p_diff;
+            if(p_diff >= PC_minFlow_UB)
+                PC_minFlow_UB = p_diff;
+        }
+        
         path[cid].clear();
         cyclic_innode[cid].clear();
         cyclic_outnode[cid].clear();
+        
     }
 
-    int mean_L2R= L2R_sum/num_cid;
-    int mean_D= D_sum/num_cid;
+    float mean_L2R= L2R_sum/num_cid;
+    float mean_D= D_sum/num_cid;
     if(param_z)
     {
-        fprintf(stderr, "[M::Last2reach_iterations] range iterations [%d-%d], mean= %d\n", min_L2R, max_L2R, mean_L2R);
-        fprintf(stderr, "[M::Distance_iterations] range iterations [%d-%d], mean= %d\n", min_D, max_D, mean_D);
+        fprintf(stderr, "[M::Last2reach_iterations] range iterations [%d-%d], mean= %f\n", min_L2R, max_L2R, mean_L2R);
+        fprintf(stderr, "[M::Distance_iterations] range iterations [%d-%d], mean= %f\n", min_D, max_D, mean_D);
+        std::cout<<"Path cover size of each component: [";
+        for(int cid=0; cid < num_cid-1; cid++)
+        {
+            std::cout<<path_MF[0][cid]<<", ";
+        }
+        std::cout<<path_MF[0][num_cid-1]<<"]\n";
+
+        std::cout<<"Minimum flow value of each component: [";
+        for(int cid=0; cid < num_cid-1; cid++)
+        {
+            std::cout<<path_MF[1][cid]<<", ";
+        }
+        std::cout<<path_MF[1][num_cid-1]<<"]\n";
+
+        // fprintf(stderr,"[M::Path Cover Size - Minimum Flow] range [%d-%d]\n", PC_minFlow_LB, PC_minFlow_UB);
     }
+
+    // fprintf(stderr,"[M::Path Cover Size - Minimum Flow] range [%d-%d]\n", PC_minFlow_LB, PC_minFlow_UB);
+    // for(int i=0; i<3; i++)
+    // {
+    //     for(auto j: path_MF[i])
+    //     {     
+    //         std::cout<<j<<" ";
+    //     }
+    //     std::cout<<"\n";
+    // }
+    path_MF.clear();
     
 }
+
 
 bool compare_T(const Tuples &a, const Tuples &b){
     return std::tie( a.top_v , a.pos, a.task , a.anchor ) < std::tie( b.top_v , b.pos, b.task, b.anchor);
@@ -1393,10 +1926,19 @@ bool compare_dups(const Tuples &a, const Tuples &b){
 std::vector<mg128_t> graphUtils::Chaining(std::vector<mg128_t> anchors)
 {   //std::chrono::time_point<std::chrono::system_clock> start, end;
     //start = std::chrono::system_clock::now();
+
+    
     if (param_z)
     {
         std::cerr << " Number of Anchors : " << anchors.size() << "\n";
-    }
+    } 
+
+    // Sum the number of anchors
+    temp_N=anchors.size();
+    sum_N += temp_N;
+    max_N = std::max(max_N, temp_N);
+
+    
     // Initilaise chain_data
     std::vector<mg128_t> best;
     /* Divide Anchors corresponding to their cids */

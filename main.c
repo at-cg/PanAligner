@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
 		fprintf(fp_help, "  Input/output:\n");
 		fprintf(fp_help, "    -t INT       number of threads [%d]\n", n_threads);
 		fprintf(fp_help, "    -s float     scale factor [%f]\n", scale_factor);
-		fprintf(fp_help, "    -z bool       debug_chain [%d]\n", z);
+		fprintf(fp_help, "    -z bool       debug_chain [%d], Path cover lower bound [1]\n", z);
 		fprintf(fp_help, "    -o FILE      output mappings to FILE [stdout]\n");
 		fprintf(fp_help, "    -K NUM       minibatch size for mapping [500M]\n");
 		fprintf(fp_help, "    -S           output linear chains in * sName sLen nMz div sStart sEnd qStart qEnd\n");
@@ -305,11 +305,16 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	int max, max_sum, count;
+	int max, max_sum, count, max_N;
+	int64_t sum_N;
+	get_vars_N(max_N, sum_N, count);
 	get_vars(max, max_sum, count);
+
+	float mean_N= (float)sum_N / (float)count;
 	float mean = (float)max_sum / (float)count;
 
 	if (mg_verbose >= 3) {
+		fprintf(stderr, "[M::%s] Number of Anchors [Max: %d, Mean: %f]\n", __func__, max_N, mean_N);
 		fprintf(stderr, "[M::%s] Chaining Iterations [Max: %d, Mean: %f]\n", __func__, max, mean);
 		fprintf(stderr, "[M::%s] Version: %s\n", __func__, MG_VERSION);
 		fprintf(stderr, "[M::%s] CMD:", __func__);
