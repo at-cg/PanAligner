@@ -128,6 +128,7 @@ struct params
 	bool param_z;
 };
 
+void get_vars_N(int &max_N, int64_t &sum_N, int &count);
 void get_vars(int &max, int &max_sum, int &count);
 
 

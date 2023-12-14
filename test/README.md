@@ -1,4 +1,4 @@
 ## Credits
 
-This test example has been taken from [minigraph repository](https://github.com/lh3/minigraph/tree/master/test).
+The given examples have been taken from the [minigraph.](https://github.com/lh3/minigraph.git)
 
