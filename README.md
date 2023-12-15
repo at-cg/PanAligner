@@ -12,7 +12,7 @@ cd PanAligner && make
 - [Getting Started](#started)
 - [Introduction](#intro)
 - [Users' Guide](#uguide)
-  - [Installation](#install)
+- [Installation](#install)
   - [Sequence mapping](#map)
   - [Hybrid method](#hybrid)
   - [Benchmark](#bench)
