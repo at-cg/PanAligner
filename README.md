@@ -51,14 +51,14 @@ Before running the Hybrid Method, ensure that [minigraph](https://github.com/lh3
 ```sh
 # Inside PanAligner/Hybrid method folder
 conda install -c bioconda seqtk
-./HybridMethod.sh input_graph.gfa reads.fa out.gaf number_of_threads
+./HybridMethod.sh input.gfa reads.fa out.gaf number_of_threads
 
-# Provide input graphs path, read file path and number of threads
-# Provide out.gaf output file name and path
+# Provide input graphs path, read file path and number of threads in place of input.gaf, reads.fa and number_of_threads respectively.
+# Provide output file name and path in place of out.gaf
 ```
 ## <a name="bench"></a>Benchmark
 
-We evaluated PanAligner against other sequence-to-graph aligners to assess its scalability and accuracy advantages. The evaluation utilized human pangenome graphs constructed from [94 high-quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) provided by the Human Pangenome Reference Consortium, along with the [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) from the Telomere-to-Telomere consortium. Simulated long-reads with 0.5× coverage and 5% error-rate were used for the experiments, employing cyclic graphs of sizes 10H, 40H, and 95H, where the prefix integer represents the haplotype count in each graph. The results demonstrated superior read mapping precision, as shown in the [figure](#Plot). Notably, even on the largest graph with 95 haplotypes, PanAligner achieved efficient performance, requiring 2 hours and 36 minutes, 44 GB RAM, and 32 threads on [perlmutter CPU nodes](https://docs.nersc.gov/systems/perlmutter/architecture/#cpu-nodes).
+We evaluated PanAligner and Hybrid method against other sequence-to-graph aligners to assess its scalability and accuracy advantages. The evaluation utilized human pangenome graphs constructed from [94 high-quality haplotype assemblies](https://github.com/human-pangenomics/HPP_Year1_Assemblies) provided by the Human Pangenome Reference Consortium, along with the [CHM13 human genome assembly](https://www.ncbi.nlm.nih.gov/assembly/GCA_009914755.4) from the Telomere-to-Telomere consortium. Simulated long-reads with 0.5× coverage and 5% error-rate were used for the experiments, employing cyclic graphs of sizes 10H, 40H, and 95H, where the prefix integer represents the haplotype count in each graph. The results demonstrated superior read mapping precision, as shown in the [figure](#Plot). Notably, even on the largest graph with 95 haplotypes, PanAligner achieved efficient performance, requiring 2 hours and 36 minutes, 44 GB RAM, and 32 threads on [perlmutter CPU nodes](https://docs.nersc.gov/systems/perlmutter/architecture/#cpu-nodes).
 
 
 <p align="center" id="Plot">
