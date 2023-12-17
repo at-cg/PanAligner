@@ -17,7 +17,7 @@ echo "No. of threads: $threads"
 # 1. Alignment with Minigraph
 echo "Alignment of reads using minigraph"
 cd minigraph
-./minigraph -t"$threads" -cx lr "$graph_file" "$reads_file" > minigraph_graph.gaf
+./minigraph -t"$threads" -cx lr ../"$graph_file" ../"$reads_file" > ../minigraph_graph.gaf
 cd ..
 
 #2. Spliting the read file
