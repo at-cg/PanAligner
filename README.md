@@ -46,14 +46,16 @@ PanAligner can be used for both sequence-to-sequence alignment and sequence-to-g
 ### <a name="hybrid"></a>Hybrid method
 The Hybrid method leverages the strengths of both [minigraph](https://github.com/lh3/minigraph.git) and PanAligner to achieve efficient and accurate sequence-to-graph mapping. This method is designed to identify a subset of reads that are relatively "easy-to-align" and utilizes the fast [minigraph](https://github.com/lh3/minigraph.git) heuristics for aligning them. For the remaining reads, PanAligner is used for the alignment. 
 
-Before running the Hybrid Method, ensure that [minigraph](https://github.com/lh3/minigraph.git) and [conda](https://docs.conda.io/en/latest/) are installed and available in your PATH. And PanAligner executable is also present in the Hybrid method folder.
-
+Before running the HybridMethod.sh, ensure that [conda](https://docs.conda.io/en/latest/) is installed and available in your PATH.
 ```sh
-# Inside PanAligner/Hybrid method folder
-conda install -c bioconda seqtk
-./HybridMethod.sh input.gfa reads.fa out.gaf number_of_threads
+# One time installation of dependencies
+chmod +x get_dependencies.sh
+./get_dependencies.sh
 
-# Provide input graphs path, read file path and number of threads in place of input.gaf, reads.fa and number_of_threads respectively.
+# Map a sequence using the hybrid method
+./HybridMethod.sh input.gfa read.fa out.gaf number_of_threads
+
+# Provide input graphs path, read file path and number of threads in place of input.gaf, read.fa, and number_of_threads respectively.
 # Provide output file name and path in place of out.gaf
 ```
 ## <a name="bench"></a>Benchmark
