@@ -13,12 +13,14 @@ threads="$4"
 echo "Graph file: $graph_file"
 echo "Reads file: $reads_file"
 echo "No. of threads: $threads"
+echo ""
 
 # 1. Alignment with Minigraph
 echo "Alignment of reads using minigraph"
 cd minigraph
 ./minigraph -t"$threads" -cx lr ../"$graph_file" ../"$reads_file" > ../minigraph_graph.gaf
 cd ..
+echo ""
 
 #2. Spliting the read file
 echo "Spliting the read file"
@@ -39,6 +41,7 @@ seqtk subseq "$reads_file" PA_read_IDs.txt > reads2.fa
 rm MG*
 rm PA*
 rm in*
+echo ""
 
 #3. Read Alignment using PanAligner
 echo "Alignment of reads using PanAligner"
@@ -48,7 +51,7 @@ echo "Alignment of reads using PanAligner"
 
 #4. Hybrid alignment result
 grep "^>" hybridReads.fa | cut -c 2- > temp_MG_read_IDs.txt
-grep -F -f temp_MG_read_IDs.txt minigraph_graph.gaf > hybridAlignment_graph.gaf
+grep -F -f temp_MG_read_IDs.txt minigraph_graph.gaf > "$output_file"
 
 rm temp_MG_read_IDs.txt
 
@@ -56,3 +59,11 @@ rm temp_MG_read_IDs.txt
 echo "Alignment is done"
 cat reads2.fa >> hybridReads.fa
 cat PanAligner_result.gaf >> "$output_file"
+rm reads2.fa
+rm PanAligner_result.gaf
+rm minigraph_graph.gaf
+
+echo ""
+echo "Hybrid alignment ouput is stored in $output_file"
+echo "Hybrid reads are stored in PanAligner/hybridReads.fa"
+
