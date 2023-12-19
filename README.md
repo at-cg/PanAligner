@@ -53,7 +53,7 @@ chmod +x get_dependencies.sh
 ./get_dependencies.sh
 
 # Map a sequence using the hybrid method
-./HybridMethod.sh input.gfa read.fa out.gaf number_of_threads
+./hybrid_method.sh input.gfa read.fa out.gaf number_of_threads
 
 # Provide input graphs path, read file path and number of threads in place of input.gaf, read.fa, and number_of_threads respectively.
 # Provide output file name and path in place of out.gaf
