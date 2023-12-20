@@ -52,11 +52,14 @@ Before running the HybridMethod.sh, ensure that [conda](https://docs.conda.io/en
 chmod +x get_dependencies.sh
 ./get_dependencies.sh
 
-# Map a sequence using the hybrid method
-./hybrid_method.sh input.gfa read.fa out.gaf number_of_threads
+# create a hybrid_test folder
+mkdir hybrid_test
+cp hybrid_method.sh hybrid_test
+cd hybrid_test
 
-# Provide input graphs path, read file path and number of threads in place of input.gaf, read.fa, and number_of_threads respectively.
-# Provide output file name and path in place of out.gaf
+# Map a sequence using the hybrid method in the hybrid_test folder
+./hybrid_method.sh ../test/MT.gfa ../test/MT-human.fa out.gaf 4
+ # Here hybrid_method.sh takes 1st argument as graph file 2nd argument as query file 3rd argument as output "gaf" file and last argument specifies the count of threads
 ```
 ## <a name="bench"></a>Benchmark
 
