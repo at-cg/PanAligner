@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# For seqtk
+source ~/.bashrc
+conda activate PA
+MG=~/.PanAligner_deps/minigraph
+PA=~/.PanAligner_deps/PanAligner
+
 # Check if the user provided input files and output file
 if [ "$#" -ne 4 ]; then
     echo "Usage: $0 <graph_file> <reads_file> <output_file> <threads>"
@@ -17,9 +23,7 @@ echo ""
 
 # 1. Alignment with Minigraph
 echo "Alignment of reads using minigraph"
-cd minigraph
-./minigraph -t"$threads" -cx lr ../"$graph_file" ../"$reads_file" > ../minigraph_graph.gaf
-cd ..
+$MG -t"$threads" -cx lr "$graph_file" "$reads_file" > minigraph_graph.gaf
 echo ""
 
 #2. Spliting the read file
@@ -46,7 +50,7 @@ echo ""
 #3. Read Alignment using PanAligner
 echo "Alignment of reads using PanAligner"
 # cd PanAligner
-./PanAligner -t"$threads" -cx lr "$graph_file" reads2.fa > PanAligner_result.gaf
+$PA -t"$threads" -cx lr "$graph_file" reads2.fa > PanAligner_result.gaf
 # cd ..
 
 #4. Hybrid alignment result
